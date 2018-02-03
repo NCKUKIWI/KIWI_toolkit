@@ -1,0 +1,21 @@
+{
+    "apps": [{
+        "name": "updateAmount",
+        "script": "./update_amount.py",
+        "interpreter": "python3",
+        "interpreter_args": "-u",
+        "env": {
+            "TZ": "Asia/Taipei"
+        },
+        "log_date_format": "YYYY-MM-DD HH:mm Z"
+    }, {
+        "name": "refreshAll",
+        "script": "./refresh_all.py",
+        "interpreter": "python3",
+        "interpreter_args": "-u",
+        "env": {
+            "TZ": "Asia/Taipei"
+        },
+        "log_date_format": "YYYY-MM-DD HH:mm Z"
+    }]
+}
