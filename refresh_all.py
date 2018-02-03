@@ -75,30 +75,6 @@ class Job:
 				td = datetime.datetime.now() - st
 				print ('[Crawler #{3}] Job({0}) is done by {2}! Spending time = {1}!'.format(self.name, td, thisThdName, self.crawlerCtr))
 				break
-				
-def doJob(*args):
-	queue = args[0]
-	thdName = args[1]
-	waitingID = args[2]
-	while True:
-		if queue.qsize() == 0:
-			# print ('[Init] {0} waiting in que'.format(thdName))
-			waiting[waitingID] = True
-			if (not False in waiting) and (not queUpdaterWorking):
-				queUpdaterWorking = True
-				global circleStartTime
-				global queStartTime
-				print ('[Queueing] Done que! Spending time = {0}!'.format(datetime.datetime.now()-queStartTime))
-				# print (classARR)
-				dbUpdater()
-				print ('[ALL] Done all! Spending time = {0}!'.format(datetime.datetime.now()-circleStartTime))
-				queUpdater()
-			else:
-				time.sleep(1)
-		if queue.qsize() > 0:
-			job = que.get()
-			job.do(thdName)
-			waiting[waitingID] = False
 
 def initer():
 	initStartTime = datetime.datetime.now()
@@ -298,6 +274,30 @@ def dbUpdater():
 	with open('devLog', 'a') as f:
 		f.write(logOutput)
 
+def doJob(*args):
+	global queUpdaterWorking
+	global waiting
+	queue = args[0]
+	thdName = args[1]
+	waitingID = args[2]
+	while True:
+		if queue.qsize() == 0:
+			waiting[waitingID] = True
+			if (not False in waiting) and (not queUpdaterWorking):
+				queUpdaterWorking = True
+				global circleStartTime
+				global queStartTime
+				print ('[Queueing] Done que! Spending time = {0}!'.format(datetime.datetime.now()-queStartTime))
+				dbUpdater()
+				print ('[ALL] Done all! Spending time = {0}!'.format(datetime.datetime.now()-circleStartTime))
+				queUpdater()
+			else:
+				time.sleep(5)
+		if queue.qsize() > 0:
+			job = que.get()
+			job.do(thdName)
+			waiting[waitingID] = False
+
 heads = ['dept_name', 'dept_code', 'serial', 'course_code', 'class_code', 'class_type',
 'grade', 'type', 'group', 'english', 'course_name', 'subject_type', 'credit', 'teacher', 
 'choosed_amount', 'extra_amount', 'time', 'classroom', 'description', 'condition',
@@ -306,9 +306,11 @@ heads = ['dept_name', 'dept_code', 'serial', 'course_code', 'class_code', 'class
 db_config = {}
 
 with open( 'config.json') as f:
-	db_config = jsonpkg.load(f).db
+	db_config = jsonpkg.load(f)['db']
 
 db_config['charset'] = 'utf8'
+db_config['password'] = db_config['pw']
+db_config.pop('pw', None)
 cnx = mysql.connect(**db_config)
 cursor = cnx.cursor(mysql.cursors.DictCursor)
 que = queue.Queue()
@@ -317,6 +319,7 @@ waiting = []
 circleStartTime = 0
 queStartTime = 0
 queUpdaterWorking = False
+queUpdater()
 # for i in range(4):
 for i in range(2):
 	waiting.append(False)
@@ -326,20 +329,19 @@ try:
 	thd2 = threading.Thread(target=doJob, name='Thd2', args=(que,'Thd[2]', 1))
 	# thd3 = threading.Thread(target=doJob, name='Thd3', args=(que,'Thd[3]', 2))
 	# thd4 = threading.Thread(target=doJob, name='Thd4', args=(que,'Thd[4]', 3))
-	thd5 = threading.Thread(target=queUpdater, name='Thd5', args=())
+	# thd5 = threading.Thread(target=queUpdater, name='Thd5', args=())
 	thd1.daemon = True
 	thd2.daemon = True
 	# thd3.daemon = True
 	# thd4.daemon = True
-	thd5.daemon = True
-	crawlStartTime = datetime.datetime.now()
+	# thd5.daemon = True
 	thd1.start()
 	thd2.start()
 	# thd3.start()
 	# thd4.start()
-	thd5.start()
+	# thd5.start()
 	while True:
-		if not (thd1.is_alive() and thd2.is_alive() and thd5.is_alive()):
+		if not (thd1.is_alive() and thd2.is_alive()):
 		# if not (thd1.is_alive() and thd2.is_alive() and thd3.is_alive() and thd4.is_alive() and thd5.is_alive()):
 			raise Exception('Thread Dead')
 		time.sleep(10)

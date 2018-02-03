@@ -55,10 +55,10 @@ class Job:
 							keyTmp[heads[index]] = data.strip()
 						if index == 1 or index == 2: 
 							key += data
-						try:
-							int(keyTmp['extra_amount'])
-						except ValueError as e:
-							keyTmp['extra_amount'] = '0'
+					try:
+						int(keyTmp['extra_amount'])
+					except ValueError as e:
+						keyTmp['extra_amount'] = '0'
 					if not key == "":
 						newDataPool[key] = keyTmp
 				td = datetime.datetime.now() - st
@@ -66,9 +66,8 @@ class Job:
 				break
 
 def queUpdater():
-	global dataToUpdate
+	global followedCourseDict
 	global circleStartTime
-	global queUpdaterWorking
 	cnxTmp = mysql.connect(**db_config)
 	cursorTmp = cnxTmp.cursor(mysql.cursors.DictCursor)
 	query = ("SELECT * FROM follow")
@@ -97,9 +96,8 @@ def queUpdater():
 		# print dept
 		que.put(Job(dept, deptDict[dept]))
 	print("[Queueing] Queue size = {0}... Circle time = {1}!".format(que.qsize(), datetime.datetime.now()-circleStartTime))
-	dataToUpdate = serialDictByDept
+	followedCourseDict = serialDictByDept
 	circleStartTime = datetime.datetime.now()
-	queUpdaterWorking = False
 
 def doJob(*args):
 	global queUpdaterWorking
@@ -108,7 +106,9 @@ def doJob(*args):
 	while True:
 		if queueing.qsize() == 0:
 			if not queUpdaterWorking:
+				queUpdaterWorking = True
 				queUpdater()
+				queUpdaterWorking = False
 			else:
 				time.sleep(1)
 		if queueing.qsize() > 0:
@@ -149,18 +149,20 @@ heads = ['dept_name', 'dept_code', 'serial', 'course_code', 'class_code', 'class
 db_config = {}
 
 with open( 'config.json') as f:
-	db_config = jsonpkg.load(f).db
+	db_config = jsonpkg.load(f)['db']
 
+db_config['password'] = db_config['pw']
+db_config.pop('pw', None)
 db_config['charset'] = 'utf8'
 cnx = mysql.connect(**db_config)
 cursor = cnx.cursor(mysql.cursors.DictCursor)
 que = queue.Queue()
-dataToUpdate = {}
+followedCourseDict = {}
 newDataPool = {}
 queUpdaterWorking = False
 
-queUpdater()
 circleStartTime = datetime.datetime.now()
+queUpdater()
 
 try:
 	thd1 = threading.Thread(target=doJob, name='Thd1', args=(que,'Thd[1]'))
@@ -181,12 +183,10 @@ try:
 	while True:
 		print ('[Update] Start query to update Extra Amount!')
 		queryStartTime = datetime.datetime.now()
-		tmpNewDataPool = newDataPool
-		newDataPool = {}
-		for aDept in dataToUpdate:
-			for serial in dataToUpdate[aDept]:
-				if serial in tmpNewDataPool:
-					balance = tmpNewDataPool[serial]["extra_amount"]
+		for aDept in followedCourseDict:
+			for serial in followedCourseDict[aDept]:
+				if serial in newDataPool:
+					balance = newDataPool[serial]["extra_amount"]
 					while True:
 						try:
 							cursor.execute ("""
@@ -198,6 +198,7 @@ try:
 							print ('Error on exec [ {0} : {1} ]'.format(serial, balance))
 							continue
 						else:
+							newDataPool.pop(serial, None)
 							cnx.commit()
 							break
 		print ('[Update] Query Finish! Spending time = {0}!'.format(datetime.datetime.now()-queryStartTime))
