@@ -151,9 +151,11 @@ db_config = {}
 with open( 'config.json') as f:
 	db_config = jsonpkg.load(f)['db']
 
+db_config['charset'] = 'utf8'
 db_config['password'] = db_config['pw']
 db_config.pop('pw', None)
-db_config['charset'] = 'utf8'
+db_config['db'] = db_config['database']
+db_config.pop('database', None)
 cnx = mysql.connect(**db_config)
 cursor = cnx.cursor(mysql.cursors.DictCursor)
 que = queue.Queue()
