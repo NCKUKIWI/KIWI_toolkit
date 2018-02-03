@@ -206,7 +206,7 @@ try:
 		print ('[Update] Query Finish! Spending time = {0}!'.format(datetime.datetime.now()-queryStartTime))
 		if not (thd1.is_alive() and thd2.is_alive() and thd3.is_alive()):# and thd4.is_alive()):
 			raise Exception('Thread Dead')
-		time.sleep(10)
+		time.sleep(5)
 except (KeyboardInterrupt, SystemExit):
 	print ('\n!!! Received keyboard interrupt, quitting threads. !!!\n')
 except:
