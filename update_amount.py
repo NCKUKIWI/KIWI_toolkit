@@ -149,7 +149,7 @@ heads = ['dept_name', 'dept_code', 'serial', 'course_code', 'class_code', 'class
 db_config = {}
 
 with open( 'config.json') as f:
-	db_config = jsonpkg.load(f)
+	db_config = jsonpkg.load(f).db
 
 db_config['charset'] = 'utf8'
 cnx = mysql.connect(**db_config)

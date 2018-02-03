@@ -9,46 +9,6 @@ import requests
 import json as jsonpkg
 from bs4 import BeautifulSoup as bs
 
-def initer():
-	initStartTime = datetime.datetime.now()
-	print ('[Init] Start!')
-	while True:
-		try:
-			res = requests.get("http://course-query.acad.ncku.edu.tw/qry/", timeout = 30)
-			while (res.status_code != 200):
-				print ('[ERR] Unexpected error code while requests, Job(INIT) Code : {0}!'.format(res.status_code))
-		except requests.Timeout as e:
-			print ('[Init] timeout!')# str(datetime.datetime.now() - st)
-			continue
-		except (requests.ConnectionError, ConnectionResetError) as e:
-			print ("[Init] " + self.name + " error")# :" + str(datetime.datetime.now() - st)
-			continue
-		except:
-			print ("\n!!! Unexpected error while requests !!!\n")
-			raise
-		else:
-			break
-	res.close()
-	res.encoding = "utf-8"
-	if res.status_code == 200:
-		print ('[Init] Get Main Page succeed!')
-	btfs = bs(res.text, "html.parser")
-	jsonLink = {}
-	for classes in btfs.select('div .dept'):
-		for a in classes.find_all('a', href = True):
-			textTmp = a.text
-			jsonLink[textTmp[3:5]] = {
-				'url':a['href'], 'name':textTmp.replace(u"）", ")").replace(" ","")
-			}
-	for classes in btfs.select('div .institute'):
-		for a in classes.find_all('a', href = True):
-			textTmp = a.text
-			jsonLink[textTmp[3:5]] = {
-				'url':a['href'], 'name':textTmp.replace(u"）", ")").replace(" ","")
-			}
-	print ('[Init] {0} depts! Spending Time = {1}'.format(len(jsonLink), datetime.datetime.now()-initStartTime))
-	return jsonLink
-
 class Job:
 	def __init__(self, name, dept, crawlerCtr):
 		self.name = name
@@ -59,8 +19,9 @@ class Job:
 			st = datetime.datetime.now()
 			try:
 				resForClass = requests.get("http://course-query.acad.ncku.edu.tw/qry/" + self.dept['url'], timeout = 30)
-				while (resForClass.status_code != 200):
+				if not resForClass.status_code == 200:
 					print ('[ERR] Unexpected error code while requests, Job({0}) Code : {1}!'.format(self.name, resForClass.status_code))
+					continue
 			except requests.Timeout as e:
 				print ('[Crawler] {0} timeout on {1}!'.format(self.name, thisThdName))# str(datetime.datetime.now() - st)
 				continue
@@ -114,85 +75,91 @@ class Job:
 				td = datetime.datetime.now() - st
 				print ('[Crawler #{3}] Job({0}) is done by {2}! Spending time = {1}!'.format(self.name, td, thisThdName, self.crawlerCtr))
 				break
-
+				
 def doJob(*args):
 	queue = args[0]
 	thdName = args[1]
 	waitingID = args[2]
 	while True:
 		if queue.qsize() == 0:
-			time.sleep(1)
 			# print ('[Init] {0} waiting in que'.format(thdName))
 			waiting[waitingID] = True
+			if (not False in waiting) and (not queUpdaterWorking):
+				queUpdaterWorking = True
+				global circleStartTime
+				global queStartTime
+				print ('[Queueing] Done que! Spending time = {0}!'.format(datetime.datetime.now()-queStartTime))
+				# print (classARR)
+				dbUpdater()
+				print ('[ALL] Done all! Spending time = {0}!'.format(datetime.datetime.now()-circleStartTime))
+				queUpdater()
+			else:
+				time.sleep(1)
 		if queue.qsize() > 0:
 			job = que.get()
 			job.do(thdName)
 			waiting[waitingID] = False
 
-heads = ['dept_name', 'dept_code', 'serial', 'course_code', 'class_code', 'class_type',
-'grade', 'type', 'group', 'english', 'course_name', 'subject_type', 'credit', 'teacher', 
-'choosed_amount', 'extra_amount', 'time', 'classroom', 'description', 'condition',
-'expert', 'attribute_code', 'cross_master', 'Moocs']
-
-db_config = {}
-
-with open( 'config.json') as f:
-	db_config = jsonpkg.load(f)
-
-db_config['charset'] = 'utf8'
-cnx = mysql.connect(**db_config)
-cursor = cnx.cursor(mysql.cursors.DictCursor)
-que = queue.Queue()
-classARR = []
-waiting = []
-circleStartTime = 0
-# for i in range(4):
-for i in range(2):
-	waiting.append(False)
-
-# fileLocation = {}
-# with open('config.json') as f:
-# 	fileLocation = jsonpkg.load(f)
-# fileLocation = fileLocation['savingLocation']
+def initer():
+	initStartTime = datetime.datetime.now()
+	print ('[Init] Start!')
+	while True:
+		try:
+			res = requests.get("http://course-query.acad.ncku.edu.tw/qry/", timeout = 30)
+			if not res.status_code == 200:
+				print ('[ERR] Unexpected error code while requests, Job(INIT) Code : {0}!'.format(res.status_code))
+				continue
+		except requests.Timeout as e:
+			print ('[Init] timeout!')# str(datetime.datetime.now() - st)
+			continue
+		except (requests.ConnectionError, ConnectionResetError) as e:
+			print ("[Init] " + self.name + " error")# :" + str(datetime.datetime.now() - st)
+			continue
+		except:
+			print ("\n!!! Unexpected error while requests !!!\n")
+			raise
+		else:
+			break
+	res.close()
+	res.encoding = "utf-8"
+	if res.status_code == 200:
+		print ('[Init] Get Main Page succeed!')
+	btfs = bs(res.text, "html.parser")
+	jsonLink = {}
+	for classes in btfs.select('div .dept'):
+		for a in classes.find_all('a', href = True):
+			textTmp = a.text
+			jsonLink[textTmp[3:5]] = {
+				'url':a['href'], 'name':textTmp.replace(u"）", ")").replace(" ","")
+			}
+	for classes in btfs.select('div .institute'):
+		for a in classes.find_all('a', href = True):
+			textTmp = a.text
+			jsonLink[textTmp[3:5]] = {
+				'url':a['href'], 'name':textTmp.replace(u"）", ")").replace(" ","")
+			}
+	print ('[Init] {0} depts! Spending Time = {1}'.format(len(jsonLink), datetime.datetime.now()-initStartTime))
+	return jsonLink
 
 def queUpdater():
 	global circleStartTime
 	global queStartTime
-	while True:
-		if que.qsize() == 0:
-			if circleStartTime == 0:
-				circleStartTime = datetime.datetime.now()
-				jsonLink = initer()
-				crawlerCtr = 1
-				queStartTime = datetime.datetime.now()
-				for num, dept in enumerate(jsonLink):
-					# if num >= 4: break
-					# print (dept)
-					que.put(Job(dept, jsonLink[dept], crawlerCtr))
-					crawlerCtr += 1
-				print ("[Queueing] Queue size = {0}...!".format(que.qsize()))
-			elif not False in waiting:
-				print ('[Queueing] Done que! Spending time = {0}!'.format(datetime.datetime.now()-queStartTime))
-				# print (classARR)
-				dbUpdater()
-				print ('[ALL] Done all! Spending time = {0}!'.format(datetime.datetime.now()-circleStartTime))
-				circleStartTime = datetime.datetime.now()
-				jsonLink = initer()
-				crawlerCtr = 1
-				queStartTime = datetime.datetime.now()
-				for num, dept in enumerate(jsonLink):
-					# if num >= 4: break
-					# print dept
-					que.put(Job(dept, jsonLink[dept], crawlerCtr))
-					crawlerCtr += 1
-				print ("[Queueing] Queue size = {0}...!".format(que.qsize()))
-		time.sleep(5)
+	circleStartTime = datetime.datetime.now()
+	jsonLink = initer()
+	crawlerCtr = 1
+	queStartTime = datetime.datetime.now()
+	for num, dept in enumerate(jsonLink):
+		# if num >= 4: break
+		# print (dept)
+		que.put(Job(dept, jsonLink[dept], crawlerCtr))
+		crawlerCtr += 1
+	print ("[Queueing] Queue size = {0}...!".format(que.qsize()))
 
 def dbUpdater():
 	global classARR
-	localClassARR = list(classARR)
+	localClassARR = classARR
 	classARR = []
-	idList = []
+	closedCourseIdList = []
 	followedList = []
 	tmpOriCourses = {}
 	gotErr = False
@@ -299,14 +266,14 @@ def dbUpdater():
 			print ("error on exec SELECT non-update : {0}".format(e))
 		else:
 			for row in cursor:
-				idList.append(row['id'])
+				closedCourseIdList.append(row['id'])
 				tmpKey = str(row['id']) + '-' + row['系號'] + '-' + row['課程碼'] + '-' + row['分班碼'] + '-' + row['組別'] + '-' + row['類別'] + '-' + row['班別']
 				logOutput += '[OLD] |' + datetime.datetime.today().isoformat() + '| '  + tmpKey + '\n'
 		print ('[Select] Finish Select non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
 
-		# print ('[Delete] Start Clean non-update! Amount: {0}'.format(len(idList)))
+		# print ('[Delete] Start Clean non-update! Amount: {0}'.format(len(closedCourseIdList)))
 		# startTime = datetime.datetime.now()
-		# for aCourse in idList:
+		# for aCourse in closedCourseIdList:
 		# 	try:
 		# 		query = "DELETE FROM course_new WHERE id = {0};".format(aCourse)
 		# 		cursor.execute(query)
@@ -317,9 +284,9 @@ def dbUpdater():
 		# cnx.commit()
 		# print ('[Delete] Finish Clean non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
 
-		# print ('[ModFollow] Start Modify Follow! Amount: {0}'.format(len(idList)))
+		# print ('[ModFollow] Start Modify Follow! Amount: {0}'.format(len(closedCourseIdList)))
 		# startTime = datetime.datetime.now()
-		# for aCourse in idList:
+		# for aCourse in closedCourseIdList:
 		# 	try:
 		# 		query = "UPDATE follow SET course_id=-1 WHERE course_id={0};".format(aCourse)
 		# 		cursor.execute(query)
@@ -330,6 +297,29 @@ def dbUpdater():
 
 	with open('devLog', 'a') as f:
 		f.write(logOutput)
+
+heads = ['dept_name', 'dept_code', 'serial', 'course_code', 'class_code', 'class_type',
+'grade', 'type', 'group', 'english', 'course_name', 'subject_type', 'credit', 'teacher', 
+'choosed_amount', 'extra_amount', 'time', 'classroom', 'description', 'condition',
+'expert', 'attribute_code', 'cross_master', 'Moocs']
+
+db_config = {}
+
+with open( 'config.json') as f:
+	db_config = jsonpkg.load(f).db
+
+db_config['charset'] = 'utf8'
+cnx = mysql.connect(**db_config)
+cursor = cnx.cursor(mysql.cursors.DictCursor)
+que = queue.Queue()
+classARR = []
+waiting = []
+circleStartTime = 0
+queStartTime = 0
+queUpdaterWorking = False
+# for i in range(4):
+for i in range(2):
+	waiting.append(False)
 
 try:
 	thd1 = threading.Thread(target=doJob, name='Thd1', args=(que,'Thd[1]', 0))
