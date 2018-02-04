@@ -148,14 +148,9 @@ heads = ['dept_name', 'dept_code', 'serial', 'course_code', 'class_code', 'class
 
 db_config = {}
 
-with open( 'config.json') as f:
-	db_config = jsonpkg.load(f)['db']
+with open( 'config.crawler.json') as f:
+	db_config = jsonpkg.load(f)['db_py']
 
-db_config['charset'] = 'utf8'
-db_config['passwd'] = db_config['pw']
-db_config.pop('pw', None)
-db_config['db'] = db_config['database']
-db_config.pop('database', None)
 cnx = mysql.connect(**db_config)
 cursor = cnx.cursor(mysql.cursors.DictCursor)
 que = queue.Queue()
