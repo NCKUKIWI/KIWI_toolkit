@@ -291,6 +291,7 @@ def doJob(*args):
 				dbUpdater()
 				print ('[ALL] Done all! Spending time = {0}!'.format(datetime.datetime.now()-circleStartTime))
 				queUpdater()
+				queUpdaterWorking = False
 			else:
 				time.sleep(5)
 		if queue.qsize() > 0:
