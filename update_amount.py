@@ -180,6 +180,7 @@ try:
 	while True:
 		print ('[Update] Start query to update Extra Amount!')
 		queryStartTime = datetime.datetime.now()
+		queryCtr = 0
 		for aDept in followedCourseDict:
 			for serial in followedCourseDict[aDept]:
 				if serial in newDataPool:
@@ -195,10 +196,11 @@ try:
 							print ('Error on exec [ {0} : {1} ]'.format(serial, balance))
 							continue
 						else:
+							queryCtr += 1
 							newDataPool.pop(serial, None)
 							cnx.commit()
 							break
-		print ('[Update] Query Finish! Spending time = {0}!'.format(datetime.datetime.now()-queryStartTime))
+		print ('[Update] Query Finish! Amount = {1}! Spending time = {0}!'.format(datetime.datetime.now()-queryStartTime, queryCtr))
 		if not (thd1.is_alive() and thd2.is_alive() and thd3.is_alive() and thd4.is_alive()):
 			raise Exception('Thread Dead')
 		time.sleep(5)
