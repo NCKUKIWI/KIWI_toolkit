@@ -3,12 +3,8 @@
 var mysql = require('mysql');
 var fs = require('fs');
 
-var config;
-fs.readFile("./config.crawler.json", 'utf8', function(err, data) {
-    if (err) throw err;
-    config = JSON.parse(data);
-});
-
+var config = fs.readFileSync("./config.crawler.json", 'utf8');
+config = JSON.parse(config);
 var db_config = config.db_js;
 var ctr = 0;
 con = mysql.createConnection(db_config);

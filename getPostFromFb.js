@@ -2,23 +2,19 @@
 
 // var max_post_id = 675 //改成都放心得的
 // var max_post_id = 0;
-var max_post_id = 675;
-var config;
+var max_post_id = 818;
 var fs = require('fs');
 var request = require('request');
 var mysql = require('mysql');
 
-fs.readFile("./config.crawler.json", 'utf8', function(err, data) {
-    if (err) throw err;
-    config = JSON.parse(data);
-});
-
+var config = fs.readFileSync("./config.crawler.json", 'utf8');
+config = JSON.parse(config);
 var db_config = config.db_js;
 
 // FB連結設定
 var url = "https://graph.facebook.com/v2.6/" + config.fb.page_id + "?fields=posts.limit(100)&access_token=" + config.fb.app_id + "|" + config.fb.token;
 
-con = mysql.createConnection(db_config);
+var con = mysql.createConnection(db_config);
 
 // var classification = [];
 // classification[0] = "通識";
@@ -39,9 +35,7 @@ con = mysql.createConnection(db_config);
 // 	// FB(url, Number(0));	
 // });
 con.query("SELECT MAX(crawl_id) FROM post;", function(err, result) {
-    if (err) {
-        console.log(err);
-    }
+    if (err) throw err;
     max_post_id = result[0]['MAX(crawl_id)'];
     console.log('max_post_id = ' + max_post_id);
     FB(url, max_post_id);

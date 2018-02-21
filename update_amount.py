@@ -166,17 +166,17 @@ try:
 	thd2 = threading.Thread(target=doJob, name='Thd2', args=(que,'Thd[2]'))
 	thd3 = threading.Thread(target=doJob, name='Thd3', args=(que,'Thd[3]'))
 	thd4 = threading.Thread(target=doJob, name='Thd4', args=(que,'Thd[4]'))
-	thd5 = threading.Thread(target=doJobA9, name='Thd5', args=())
+	# thd5 = threading.Thread(target=doJobA9, name='Thd5', args=())
 	thd1.daemon = True
 	thd2.daemon = True
 	thd3.daemon = True
 	thd4.daemon = True
-	thd5.daemon = True
+	# thd5.daemon = True
 	thd1.start()
 	thd2.start()
 	thd3.start()
 	thd4.start()
-	thd5.start()
+	# thd5.start()
 	while True:
 		print ('[Update] Start query to update Extra Amount!')
 		queryStartTime = datetime.datetime.now()
