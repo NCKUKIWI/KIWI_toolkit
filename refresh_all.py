@@ -89,7 +89,7 @@ def initer():
 			print ('[Init] timeout!')# str(datetime.datetime.now() - st)
 			continue
 		except (requests.ConnectionError, ConnectionResetError) as e:
-			print ("[Init] " + self.name + " error")# :" + str(datetime.datetime.now() - st)
+			print ("[Init] connection error")# :" + str(datetime.datetime.now() - st)
 			continue
 		except:
 			print ("\n!!! Unexpected error while requests !!!\n")

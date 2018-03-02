@@ -59,6 +59,10 @@ class Job:
 						int(keyTmp['extra_amount'])
 					except ValueError as e:
 						keyTmp['extra_amount'] = '0'
+					except KeyError as e:
+						logOutput = '[KeyERR] |' + datetime.datetime.today().isoformat() + '| ' + json.dumps(keyTmp)
+						with open('devLog', 'a') as f:
+							f.write(logOutput)
 					if not key == "":
 						newDataPool[key] = keyTmp
 				td = datetime.datetime.now() - st
