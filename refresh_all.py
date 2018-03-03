@@ -9,6 +9,9 @@ import requests
 import json as jsonpkg
 from bs4 import BeautifulSoup as bs
 
+# Modify thread amount here
+thread_amount = 2
+
 class Job:
 	def __init__(self, name, dept, crawlerCtr):
 		self.name = name
@@ -318,36 +321,26 @@ circleStartTime = 0
 queStartTime = 0
 queUpdaterWorking = False
 queUpdater()
-# for i in range(4):
-for i in range(2):
+for i in range(thread_amount):
 	waiting.append(False)
 
 try:
-	thd1 = threading.Thread(target=doJob, name='Thd1', args=(que,'Thd[1]', 0))
-	thd2 = threading.Thread(target=doJob, name='Thd2', args=(que,'Thd[2]', 1))
-	# thd3 = threading.Thread(target=doJob, name='Thd3', args=(que,'Thd[3]', 2))
-	# thd4 = threading.Thread(target=doJob, name='Thd4', args=(que,'Thd[4]', 3))
-	# thd5 = threading.Thread(target=queUpdater, name='Thd5', args=())
-	thd1.daemon = True
-	thd2.daemon = True
-	# thd3.daemon = True
-	# thd4.daemon = True
-	# thd5.daemon = True
-	thd1.start()
-	thd2.start()
-	# thd3.start()
-	# thd4.start()
-	# thd5.start()
+	thread_arr = []
+	for i in range(thread_amount):
+		thread_arr.append(threading.Thread(target=doJob, name='Thd' + str(i+1), args=(que,'Thd[' + str(i+1) + ']', i)))
+		thread_arr[i].daemon = True
+	for i in range(thread_amount):
+		thread_arr[i].start()
 	while True:
-		if not (thd1.is_alive() and thd2.is_alive()):
-		# if not (thd1.is_alive() and thd2.is_alive() and thd3.is_alive() and thd4.is_alive() and thd5.is_alive()):
-			raise Exception('Thread Dead')
+		for i in range(thread_amount):
+			if not thread_arr[i].is_alive():
+				raise Exception('Thread Dead')
 		time.sleep(10)
 except (KeyboardInterrupt, SystemExit):
 	print ('\n!!! Received keyboard interrupt, quitting threads. !!!\n')
 except:
 	print (sys.exc_info())
-	print ('\n!!! A thread dead, stop all !!!\n')
+	print ('\n!!! A thread dead, stop all. !!!\n')
 else:
 	cursor.close()
 	cnx.close()
