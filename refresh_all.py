@@ -117,6 +117,8 @@ def initer():
 			jsonLink[textTmp[3:5]] = {
 				'url':a['href'], 'name':textTmp.replace(u"）", ")").replace(" ","")
 			}
+	if len(jsonLink) == 0:
+		raise Exception('\n??? No Class ???\n')
 	print ('[Init] {0} depts! Spending Time = {1}'.format(len(jsonLink), datetime.datetime.now()-initStartTime))
 	return jsonLink
 
@@ -249,30 +251,31 @@ def dbUpdater():
 				tmpKey = str(row['id']) + '-' + row['系號'] + '-' + row['課程碼'] + '-' + row['分班碼'] + '-' + row['組別'] + '-' + row['類別'] + '-' + row['班別']
 				logOutput += '[OLD] |' + datetime.datetime.today().isoformat() + '| '  + tmpKey + '\n'
 		print ('[Select] Finish Select non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
+		
+		if len(closedCourseIdList) < 10:
+			print ('[Delete] Start Clean non-update! Amount: {0}'.format(len(closedCourseIdList)))
+			startTime = datetime.datetime.now()
+			for aCourse in closedCourseIdList:
+				try:
+					query = "DELETE FROM course_new WHERE id = {0};".format(aCourse)
+					cursor.execute(query)
+				except Exception as e:
+					print ("error on exec DELETE non-update [ {0} ] : {1}".format(aCourse, e))
+				else:
+					print ("[Delete] Course Close [ {0} ]".format(aCourse))
+			cnx.commit()
+			print ('[Delete] Finish Clean non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
 
-		print ('[Delete] Start Clean non-update! Amount: {0}'.format(len(closedCourseIdList)))
-		startTime = datetime.datetime.now()
-		for aCourse in closedCourseIdList:
-			try:
-				query = "DELETE FROM course_new WHERE id = {0};".format(aCourse)
-				cursor.execute(query)
-			except Exception as e:
-				print ("error on exec DELETE non-update [ {0} ] : {1}".format(aCourse, e))
-			else:
-				print ("[Delete] Course Close [ {0} ]".format(aCourse))
-		cnx.commit()
-		print ('[Delete] Finish Clean non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
-
-		print ('[ModFollow] Start Modify Follow! Amount: {0}'.format(len(closedCourseIdList)))
-		startTime = datetime.datetime.now()
-		for aCourse in closedCourseIdList:
-			try:
-				query = "UPDATE follow SET course_id=-1 WHERE course_id={0};".format(aCourse)
-				cursor.execute(query)
-			except Exception as e:
-				print ("error on exec UPDATE closedCourse Follow [ {0} ] : {1}".format(aCourse, e))
-		cnx.commit()
-		print ('[ModFollow] Finish Modify Follow! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
+			print ('[ModFollow] Start Modify Follow! Amount: {0}'.format(len(closedCourseIdList)))
+			startTime = datetime.datetime.now()
+			for aCourse in closedCourseIdList:
+				try:
+					query = "UPDATE follow SET course_id=-1 WHERE course_id={0};".format(aCourse)
+					cursor.execute(query)
+				except Exception as e:
+					print ("error on exec UPDATE closedCourse Follow [ {0} ] : {1}".format(aCourse, e))
+			cnx.commit()
+			print ('[ModFollow] Finish Modify Follow! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
 
 	with open('devLog', 'a') as f:
 		f.write(logOutput)
