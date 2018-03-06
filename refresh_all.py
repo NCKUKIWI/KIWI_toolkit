@@ -27,15 +27,15 @@ class Job:
 					continue
 				resForClass.close()
 				resForClass.encoding = "utf-8"
-			except requests.Timeout as e:
+			except (requests.Timeout, TimeoutError) as e:
 				print ('[Crawler] {0} timeout on {1}!'.format(self.name, thisThdName))# str(datetime.datetime.now() - st)
 				continue
 			except (requests.ConnectionError, ConnectionResetError) as e:
 				print ("[Crawler] " + self.name + " error")# :" + str(datetime.datetime.now() - st)
 				continue
-			except:
+			except Exception as e:
 				print ("\n!!! Unexpected error while requests !!!\n")
-				raise
+				continue
 			else:
 				btfsClass = bs(resForClass.text, "html.parser")
 				# 抽取課程內容
@@ -97,9 +97,9 @@ def initer():
 		except (requests.ConnectionError, ConnectionResetError) as e:
 			print ("[Init] connection error")# :" + str(datetime.datetime.now() - st)
 			continue
-		except:
+		except Exception as e:
 			print ("\n!!! Unexpected error while requests !!!\n")
-			raise
+			continue
 		else:
 			break
 	print ('[Init] Get Main Page succeed!')
@@ -246,13 +246,17 @@ def dbUpdater():
 		except Exception as e:
 			print ("error on exec SELECT non-update : {0}".format(e))
 		else:
+			tmpLog = ""
 			for row in cursor:
 				closedCourseIdList.append(row['id'])
 				tmpKey = str(row['id']) + '-' + row['系號'] + '-' + row['課程碼'] + '-' + row['分班碼'] + '-' + row['組別'] + '-' + row['類別'] + '-' + row['班別']
-				logOutput += '[OLD] |' + datetime.datetime.today().isoformat() + '| '  + tmpKey + '\n'
+				tmpLog += '[OLD] |' + datetime.datetime.today().isoformat() + '| '  + tmpKey + '\n'
 		print ('[Select] Finish Select non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
 		
-		if len(closedCourseIdList) < 10:
+		if len(closedCourseIdList) >= 10:
+			logOutput += "[ERR] |" + datetime.datetime.today().isoformat() + "| !!! Unexpected [" + len(closedCourseIdList) + "] Closed Course !!!\n"
+		elif len(closedCourseIdList) > 0:
+			logOutput += tmpLog
 			print ('[Delete] Start Clean non-update! Amount: {0}'.format(len(closedCourseIdList)))
 			startTime = datetime.datetime.now()
 			for aCourse in closedCourseIdList:

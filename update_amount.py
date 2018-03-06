@@ -21,19 +21,21 @@ class Job:
 			st = datetime.datetime.now()
 			try:
 				resForClass = requests.get("http://course-query.acad.ncku.edu.tw/qry/" + self.dept['url'], timeout = 30)
-				while (resForClass.status_code != 200):
+				if (resForClass.status_code != 200):
 					print ('[ERR] Unexpected error code while requests, Job({0}) Code : {1}!'.format(self.name, resForClass.status_code))
+					continue
 			except requests.Timeout as e:
 				print ('[Crawler] {0} timeout on {1}!'.format(self.name, thisThdName))# str(datetime.datetime.now() - st)
 				continue
 			except requests.ConnectionError as e:
 				print (self.name + " error")# :" + str(datetime.datetime.now() - st)
 				continue
-			except:
+			except Exception as e:
 				print ("Unexpected error while requests")
-				break
+				continue
 			else:
 				resForClass.encoding = "utf-8"
+				resForClass.close()
 				btfsClass = bs(resForClass.text, "html.parser")
 				# 抽取課程內容
 				bodys = []
@@ -141,9 +143,9 @@ while True:
 	except (requests.ConnectionError, ConnectionResetError) as e:
 		print ("[Init] connection error")# :" + str(datetime.datetime.now() - st)
 		continue
-	except:
+	except Exception as e:
 		print ("\n!!! Unexpected error while requests !!!\n")
-		raise
+		continue
 	else:
 		break
 print ("[Init] Get Main Page Succeed")
