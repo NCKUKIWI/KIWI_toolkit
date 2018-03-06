@@ -63,7 +63,7 @@ class Job:
 					except ValueError as e:
 						keyTmp['extra_amount'] = '0'
 					except KeyError as e:
-						logOutput = '[KeyERR] |' + datetime.datetime.today().isoformat() + '| ' + json.dumps(keyTmp)
+						logOutput = '[KeyERR] |' + datetime.datetime.today().isoformat() + '| ' + jsonpkg.dumps(keyTmp)
 						with open('devLog', 'a') as f:
 							f.write(logOutput)
 					if not key == "":
@@ -127,11 +127,26 @@ def doJobA9():
 		job = Job('A9', deptDict['A9'])
 		job.do('Thd[9]')
 
-res = requests.get("http://course-query.acad.ncku.edu.tw/qry/")
-res.close()
-res.encoding = "utf-8"
-if res.status_code == 200:
-    print ("[Init] Get Main Page Succeed")
+while True:
+	try:
+		res = requests.get("http://course-query.acad.ncku.edu.tw/qry/", timeout = 30)
+		if not res.status_code == 200:
+			print ('[ERR] Unexpected error code while requests, Job(INIT) Code : {0}!'.format(res.status_code))
+			continue
+		res.close()
+		res.encoding = "utf-8"
+	except requests.Timeout as e:
+		print ('[Init] timeout!')# str(datetime.datetime.now() - st)
+		continue
+	except (requests.ConnectionError, ConnectionResetError) as e:
+		print ("[Init] connection error")# :" + str(datetime.datetime.now() - st)
+		continue
+	except:
+		print ("\n!!! Unexpected error while requests !!!\n")
+		raise
+	else:
+		break
+print ("[Init] Get Main Page Succeed")
 btfs = bs(res.text, "html.parser")
 deptDict = {}
 for classes in btfs.select('div .dept'): # Undergraduate

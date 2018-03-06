@@ -25,6 +25,8 @@ class Job:
 				if not resForClass.status_code == 200:
 					print ('[ERR] Unexpected error code while requests, Job({0}) Code : {1}!'.format(self.name, resForClass.status_code))
 					continue
+				resForClass.close()
+				resForClass.encoding = "utf-8"
 			except requests.Timeout as e:
 				print ('[Crawler] {0} timeout on {1}!'.format(self.name, thisThdName))# str(datetime.datetime.now() - st)
 				continue
@@ -35,7 +37,6 @@ class Job:
 				print ("\n!!! Unexpected error while requests !!!\n")
 				raise
 			else:
-				resForClass.encoding = "utf-8"
 				btfsClass = bs(resForClass.text, "html.parser")
 				# 抽取課程內容
 				bodys = []
@@ -88,6 +89,8 @@ def initer():
 			if not res.status_code == 200:
 				print ('[ERR] Unexpected error code while requests, Job(INIT) Code : {0}!'.format(res.status_code))
 				continue
+			res.close()
+			res.encoding = "utf-8"
 		except requests.Timeout as e:
 			print ('[Init] timeout!')# str(datetime.datetime.now() - st)
 			continue
@@ -99,10 +102,7 @@ def initer():
 			raise
 		else:
 			break
-	res.close()
-	res.encoding = "utf-8"
-	if res.status_code == 200:
-		print ('[Init] Get Main Page succeed!')
+	print ('[Init] Get Main Page succeed!')
 	btfs = bs(res.text, "html.parser")
 	jsonLink = {}
 	for classes in btfs.select('div .dept'):
