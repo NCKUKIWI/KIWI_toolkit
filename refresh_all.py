@@ -254,7 +254,7 @@ def dbUpdater():
 		print ('[Select] Finish Select non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
 		
 		if len(closedCourseIdList) >= 10:
-			logOutput += "[ERR] |" + datetime.datetime.today().isoformat() + "| !!! Unexpected [" + len(closedCourseIdList) + "] Closed Course !!!\n"
+			logOutput += "[ERR] |" + datetime.datetime.today().isoformat() + "| !!! Unexpected [" + str(len(closedCourseIdList)) + "] Closed Course !!!\n"
 		elif len(closedCourseIdList) > 0:
 			logOutput += tmpLog
 			print ('[Delete] Start Clean non-update! Amount: {0}'.format(len(closedCourseIdList)))
