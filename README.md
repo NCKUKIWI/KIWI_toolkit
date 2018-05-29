@@ -1,8 +1,8 @@
-# Toolkit For NCKUHUB service
+# Toolkit for NCKU HUB service
 
----
+### Usage Explanation of Files
 
-###
+* `courseCrawlers.json` - Initial configuration for pm2
 
 * `checkPostByCourse.js` - 確定資料庫中的心得都有對應之課程
 * `getPostFromFb.js` - 爬取「成大選課心得分享」粉專之心得
