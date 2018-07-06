@@ -159,13 +159,13 @@ def dbUpdater():
 				continue
 			else:
 				for row in cursor:
-					tmpKey = row['系號'] + '-' + row['課程碼'] + '-' + row['分班碼'] + '-' + row['組別'] + '-' + row['類別'] + '-' + row['班別']
+					tmpKey = row['系號'] + '-' + row['選課序號']  + '-' + row['課程碼'] + '-' + row['分班碼'] + '-' + row['組別'] + '-' + row['類別'] + '-' + row['班別']
 					tmpOriCourses[tmpKey] = row['id']
 				break
 		else:
 			raise Exception("Retry Too Many Times")
 	for aCourse in localClassARR:
-		tmpKey = aCourse['dept_code'] + '-' + aCourse['course_code'] + '-' + aCourse['class_code'] + '-' + aCourse['group'] + '-' + aCourse['type'] + '-' + aCourse['class_type']
+		tmpKey = aCourse['dept_code'] + '-' + aCourse['serial']  + '-' + aCourse['course_code'] + '-' + aCourse['class_code'] + '-' + aCourse['group'] + '-' + aCourse['type'] + '-' + aCourse['class_type']
 		aCourse['id'] = tmpOriCourses.get(tmpKey, -1)
 		if aCourse['id'] == -1:
 			logOutput += '[NEW] |' + datetime.datetime.today().isoformat() + '| ' + tmpKey + '\n'
