@@ -45,7 +45,9 @@ function FB(url, max) {
     var options = {
         url: url,
         method: 'GET',
-        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+        headers: {
+            'Content-Type': 'application/json; charset=UTF-8'
+        },
         json: true,
     };
 
@@ -95,6 +97,9 @@ function FB(url, max) {
                     // postInDatabase(id, obj);
                 }
             }
+        } else {
+            console.log(error, response.statusCode, body);
+            process.exit(1);
         }
     });
 }
@@ -160,7 +165,7 @@ function new_insert_style(id, obj) {
         }
     });
 }
-
+/*
 function deleteBr(obj) {
     obj = obj.split("");
 
@@ -259,4 +264,4 @@ function hashtagInDatabase(context, id) {
         });
 
     }
-}
+}*/
