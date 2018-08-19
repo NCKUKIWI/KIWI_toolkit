@@ -10,7 +10,7 @@ import json as jsonpkg
 from bs4 import BeautifulSoup as bs
 
 # Modify thread amount here
-thread_amount = 4
+THREAD_AMOUNT = 4
 
 class Job:
 	def __init__(self, name, dept):
@@ -187,14 +187,14 @@ queUpdater()
 
 try:
 	thread_arr = []
-	for i in range(thread_amount):
+	for i in range(THREAD_AMOUNT):
 		thread_arr.append(threading.Thread(target=doJob, name='Thd' + str(i+1), args=(que,'Thd[' + str(i+1) + ']')))
 		thread_arr[i].daemon = True
-	for i in range(thread_amount):
+	for i in range(THREAD_AMOUNT):
 		thread_arr[i].start()
-	# thdA9 = threading.Thread(target=doJobA9, name='Thd9', args=())
-	# thdA9.daemon = True
-	# thdA9.start()
+	thdA9 = threading.Thread(target=doJobA9, name='Thd9', args=())
+	thdA9.daemon = True
+	thdA9.start()
 	while True:
 		print ('[Update] Start query to update Extra Amount!')
 		queryStartTime = datetime.datetime.now()
@@ -219,9 +219,9 @@ try:
 							cnx.commit()
 							break
 		print ('[Update] Query Finish! Amount = {1}! Spending time = {0}!'.format(datetime.datetime.now()-queryStartTime, queryCtr))
-		# if not thdA9.is_alive():
-		# 	raise Exception('Thread Dead')
-		for i in range(thread_amount):
+		if not thdA9.is_alive():
+			raise Exception('Thread Dead')
+		for i in range(THREAD_AMOUNT):
 			if not thread_arr[i].is_alive():
 				raise Exception('Thread Dead')
 		time.sleep(5)

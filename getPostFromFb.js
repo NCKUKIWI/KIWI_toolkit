@@ -12,7 +12,8 @@ config = JSON.parse(config);
 var db_config = config.db_js;
 
 // FB連結設定
-var url = "https://graph.facebook.com/v2.6/" + config.fb.page_id + "?fields=posts.limit(100)&access_token=" + config.fb.app_id + "|" + config.fb.token;
+var url = "https://graph.facebook.com/v2.6/" + config.fb.page_id + "/posts?limit=1&access_token=" + config.fb.app_id + "|" + config.fb.token;
+// var url = "https://graph.facebook.com/v2.6/" + config.fb.page_id + "/posts?limit=1&access_token=EAAUCXLsXLngBAKZCZAxfyZAg01JrOVBFl0bzLPjGxfopA5VfQZB9S7ZAwDFtaguM34B6rRcuWuChLNkZAE5vdVZCua4FBKY8iZBjXEcLNZBDtJ2TOVZCnrKhBHrZBupyRBsjj7ufaT1qZB5ptLtlCpmJf9iV7O55tbTegj07DkzaWA0FDGZC7O0zvGO8jq5V43xiVb6bQHntZAD2WAPwZDZD";
 
 var con = mysql.createConnection(db_config);
 
@@ -152,18 +153,18 @@ function new_insert_style(id, obj) {
 
     console.log(sql);
 
-    con.query(sql, function(err, result) {
-        console.log("add " + id + " in database");
-        if (err) {
-            console.log("id: " + id + "\n" + err);
-            console.log("sql");
-            console.log(sql);
-        }
-        if (id == 1) {
-            console.log('Client will end now!!!');
-            process.exit();
-        }
-    });
+    // con.query(sql, function(err, result) {
+    //     console.log("add " + id + " in database");
+    //     if (err) {
+    //         console.log("id: " + id + "\n" + err);
+    //         console.log("sql");
+    //         console.log(sql);
+    //     }
+    //     if (id == 1) {
+    //         console.log('Client will end now!!!');
+    //         process.exit();
+    //     }
+    // });
 }
 /*
 function deleteBr(obj) {
