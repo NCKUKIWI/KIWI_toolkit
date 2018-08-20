@@ -65,7 +65,7 @@ class Job:
 					except ValueError as e:
 						keyTmp['extra_amount'] = '0'
 					except KeyError as e:
-						logOutput = '[KeyERR] |' + datetime.datetime.today().isoformat() + '| ' + jsonpkg.dumps(keyTmp)
+						logOutput = '[KeyERR] |' + datetime.datetime.today().isoformat() + '| ' + jsonpkg.dumps(classinfo) + ' | ' + jsonpkg.dumps(keyTmp) + '\n'
 						with open('devLog', 'a') as f:
 							f.write(logOutput)
 					if not key == "":

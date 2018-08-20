@@ -145,6 +145,11 @@ def dbUpdater():
 	tmpOriCourses = {}
 	gotErr = False
 	logOutput = ""
+	
+	global cnx
+	global cursor
+	cnx = mysql.connect(**db_config)
+	cursor = cnx.cursor(mysql.cursors.DictCursor)
 
 	print ('[Selecter] Start Select! Select Size = {0}'.format(len(localClassARR)))
 	startTime = datetime.datetime.utcnow()
@@ -281,6 +286,8 @@ def dbUpdater():
 			cnx.commit()
 			print ('[ModFollow] Finish Modify Follow! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
 
+	cursor.close()
+	cnx.close()
 	with open('devLog', 'a') as f:
 		f.write(logOutput)
 
@@ -319,8 +326,6 @@ db_config = {}
 with open( 'config.crawler.json') as f:
 	db_config = jsonpkg.load(f)['db_py']
 
-cnx = mysql.connect(**db_config)
-cursor = cnx.cursor(mysql.cursors.DictCursor)
 que = queue.Queue()
 classARR = []
 waiting = []
