@@ -60,13 +60,19 @@ class Job:
 						else:
 							keyTmp[heads[index]] = data.strip()
 					if 'serial' in keyTmp:
-						keyTmp['course_name'].replace(',','、')
-						if keyTmp['dept_name'] == "":
-							keyTmp['dept_name'] = lastKeyTmp['dept_name']
-						if keyTmp['dept_code'] == "":
-							keyTmp['dept_code'] = lastKeyTmp['dept_code']
-						if keyTmp['credit'] == "":
-							keyTmp['credit'] = '0'
+						try:
+							keyTmp['course_name'].replace(',','、')
+							if keyTmp['dept_name'] == "":
+								keyTmp['dept_name'] = lastKeyTmp['dept_name']
+							if keyTmp['dept_code'] == "":
+								keyTmp['dept_code'] = lastKeyTmp['dept_code']
+							if keyTmp['credit'] == "":
+								keyTmp['credit'] = '0'
+						except KeyError as e:
+							logOutput = '[KeyERR] |' + datetime.datetime.today().isoformat() + '| ' + self.name + ": " + jsonpkg.dumps(keyTmp, ensure_ascii=False) + ' | ' + jsonpkg.dumps(lastKeyTmp, ensure_ascii=False) + '\n'
+							with open('devLog', 'a') as f:
+								f.write(logOutput)
+							raise e
 						try:
 							int(keyTmp['extra_amount'])
 						except ValueError as e:
@@ -118,7 +124,7 @@ def initer():
 				'url':a['href'], 'name':textTmp.replace(u"）", ")").replace(" ","")
 			}
 	if len(jsonLink) == 0:
-		raise Exception('\n??? No Class ???\n')
+		return initer()
 	print ('[Init] {0} depts! Spending Time = {1}'.format(len(jsonLink), datetime.datetime.now()-initStartTime))
 	return jsonLink
 
