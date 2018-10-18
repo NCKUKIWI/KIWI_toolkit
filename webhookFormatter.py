@@ -13,7 +13,7 @@ class HandlerClass(BaseHTTPRequestHandler):
         self.end_headers()
 
         reqBody = {
-            'body' : 'post_values'
+            'body' : post_values
         }
         headers = {
             'Accept':'application/vnd.tosslab.jandi-v2+json',
