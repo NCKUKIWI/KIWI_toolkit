@@ -21,7 +21,7 @@ class HandlerClass(BaseHTTPRequestHandler):
         }
         req = requests.post("https://wh.jandi.com/connect-api/webhook/15387725/9c62586f3f79fc3d36b123d4463bea98", json = reqBody, headers=headers)
 
-httpd = HTTPServer(('localhost', 8000), HandlerClass)
+httpd = HTTPServer(('localhost', 3030), HandlerClass)
 
 sa = httpd.socket.getsockname()
 print ("Serving HTTP on", sa[0], "port", sa[1], "...")
