@@ -9,6 +9,7 @@
   "author": "nick",
   "license": "ISC",
   "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
     "mysql": "^2.13.0",
     "request": "^2.83.0"
   }
