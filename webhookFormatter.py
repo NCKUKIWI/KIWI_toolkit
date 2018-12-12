@@ -2,6 +2,7 @@ import sys
 import cgi, json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import requests
+from urllib import parse
 
 class HandlerClass(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -12,8 +13,16 @@ class HandlerClass(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
 
+        decodedStr = post_values.decode()
+        decodedDict = dict(parse.parse_qsl(decodedStr))
+        bodyTxt = '[【{Name}】]({URL}) 狀態回報'.format(**decodedDict)
+        del(decodedDict['Name'], decodedDict['URL'])
+        connectInfoList = [{"title":k, "description": v} for k, v in decodedDict.items()]
+
         reqBody = {
-            'body' : str(post_values)
+            'body' : bodyTxt,
+            "connectColor" : "#FAC11B", 
+            "connectInfo" : connectInfoList
         }
         headers = {
             'Accept':'application/vnd.tosslab.jandi-v2+json',
