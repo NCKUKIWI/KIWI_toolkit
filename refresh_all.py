@@ -1,6 +1,8 @@
 
 # coding: utf-8
-
+# brew install mysql-connector-c
+	# https://github.com/PyMySQL/mysqlclient-python
+	# modify the mysql_config and pip3 install it.
 import datetime
 import MySQLdb as mysql
 import queue, time, threading
