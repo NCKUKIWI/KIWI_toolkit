@@ -9,6 +9,7 @@ import queue, time, threading
 import sys
 import requests
 import json as jsonpkg
+import re
 from bs4 import BeautifulSoup as bs
 
 # Modify thread amount here
@@ -19,6 +20,7 @@ class Job:
 		self.name = name
 		self.dept = dept
 		self.crawlerCtr = crawlerCtr
+	
 	def do(self, thisThdName):
 		while True:
 			st = datetime.datetime.now()
@@ -87,6 +89,19 @@ class Job:
 				td = datetime.datetime.now() - st
 				print ('[Crawler #{3}] Job({0}) is done by {2}! Spending time = {1}!'.format(self.name, td, thisThdName, self.crawlerCtr))
 				break
+
+## The folloing is the newest format:
+## 	軍訓室
+## 	A
+##                                                軍訓室           MT
+
+## trimRedundantWord is for extracting "軍訓室MT"
+def trimRedundantWord(data): #
+	dept_name = data
+	regComponent = re.findall(r".*\s.*", dept_name)
+	if(regComponent):
+		dept_name = re.sub(r"\s", "", regComponent[-1])
+	return dept_name
 
 def initer():
 	initStartTime = datetime.datetime.now()
@@ -238,13 +253,13 @@ def dbUpdater():
 			try:
 				cursor.execute("""
 				INSERT INTO course_new (`系所名稱`,`系號`,`選課序號`,`課程碼`,`分班碼`,`班別`,`年級`,`類別`,`組別`,`英語授課`,`課程名稱`,
-				`選必修`,`學分`,`老師`,`已選課人數`,`餘額`,`時間`,`教室`,`備註`,`限選條件`,`業界參與`,`屬性碼`,`跨領域學分學程`,`Moocs`,`updateTime`)
-				VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-				""", (aCourse['dept_name'], aCourse['dept_code'], aCourse['serial'], aCourse['course_code'], aCourse['class_code'],
+				`選必修`,`學分`,`老師`,`已選課人數`,`餘額`,`時間`,`教室`,`備註`,`限選條件`,`業界參與`,`屬性碼`,`跨領域學分學程`,`Moocs`,`admit`,`updateTime`)
+				VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+				""", ( trimRedundantWord(aCourse['dept_name']), aCourse['dept_code'], aCourse['serial'], aCourse['course_code'], aCourse['class_code'],
 				aCourse['class_type'], aCourse['grade'], aCourse['type'], aCourse['group'], aCourse['english'], aCourse['course_name'],
 				aCourse['subject_type'], float(aCourse['credit']), aCourse['teacher'], int(aCourse['choosed_amount']), aCourse['extra_amount'],
 				aCourse['time'], aCourse['classroom'], aCourse['description'], aCourse['condition'], aCourse['expert'],
-				aCourse['attribute_code'], aCourse['cross_master'], aCourse['Moocs'], datetime.datetime.utcnow()))
+				aCourse['attribute_code'], aCourse['cross_master'], aCourse['Moocs'], aCourse['admit'], datetime.datetime.utcnow()))
 			except Exception as e:
 				print ("error on exec INSERT [ {0} ] : {1}".format(aCourse, e))
 	cnx.commit()
@@ -265,10 +280,10 @@ def dbUpdater():
 				tmpKey = str(row['id']) + '-' + row['系號'] + '-' + row['課程碼'] + '-' + row['分班碼'] + '-' + row['組別'] + '-' + row['類別'] + '-' + row['班別']
 				tmpLog += '[OLD] |' + datetime.datetime.today().isoformat() + '| '  + tmpKey + '\n'
 		print ('[Select] Finish Select non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
-		
 		if len(closedCourseIdList) >= 10:
 			logOutput += "[ERR] |" + datetime.datetime.today().isoformat() + "| !!! Unexpected [" + str(len(closedCourseIdList)) + "] Closed Course !!!\n"
 		elif len(closedCourseIdList) > 0:
+		# if(True): # Toggle here for deleting the old course
 			logOutput += tmpLog
 			print ('[Delete] Start Clean non-update! Amount: {0}'.format(len(closedCourseIdList)))
 			startTime = datetime.datetime.now()
@@ -324,10 +339,11 @@ def doJob(*args):
 			job.do(thdName)
 			waiting[waitingID] = False
 
+# admit is the new feature at 2019-09
 heads = ['dept_name', 'dept_code', 'serial', 'course_code', 'class_code', 'class_type',
 'grade', 'type', 'group', 'english', 'course_name', 'subject_type', 'credit', 'teacher', 
 'choosed_amount', 'extra_amount', 'time', 'classroom', 'description', 'condition',
-'expert', 'attribute_code', 'cross_master', 'Moocs']
+'expert', 'attribute_code', 'cross_master', 'Moocs', 'admit']
 
 db_config = {}
 
