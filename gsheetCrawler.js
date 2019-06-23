@@ -22,6 +22,22 @@ var { google } = require('googleapis')
 var client = require('./config.crawler.json')
 var RANGE = `A${START_ROW}:W`
 const FOUR_SPACE = "\xa0\xa0\xa0\xa0";
+const GSHEET = {
+    "rowId": 0,
+    "courseName": 2,
+    "teacher": 3,
+    "catalog": 7,
+    "semester": 4,
+    "courseMaterial": 14,
+    "courseStyle": 15,
+    "rollStyle": 16,
+    "testStyle": 17,
+    "reportStyle": 18,
+    "homework": 19,
+    "comment": 20,
+    "devote": 21,
+    "gain": 22
+}
 var connection = mysql.createConnection({
     host: client.DB.host,
     user: client.DB.user,
@@ -60,41 +76,41 @@ authorize(function (auth) {
             for (let col in totalData[row]) {
                 totalData[row][col] = totalData[row][col].replace(/\"|\'|\#|\/\*/g, "")
             }
-            rowData['course_name'] = totalData[row][2]
-            rowData['teacher'] = totalData[row][3]
-            rowData['catalog'] = totalData[row][7]
-            rowData['semester'] = totalData[row][4]
+            rowData['course_name'] = totalData[row][GSHEET.courseName]
+            rowData['teacher'] = totalData[row][GSHEET.teacher]
+            rowData['catalog'] = totalData[row][GSHEET.catalog]
+            rowData['semester'] = totalData[row][GSHEET.semester]
             rowData['comment'] = ''
 
             rowData['comment'] += '[上課教材]\n\n' + FOUR_SPACE
-            rowData['comment'] += totalData[row][14]
+            rowData['comment'] += totalData[row][GSHEET.courseMaterial]
 
             rowData['comment'] += '\n\n[教學方法]\n\n' + FOUR_SPACE
-            rowData['comment'] += totalData[row][15]
+            rowData['comment'] += totalData[row][GSHEET.courseStyle]
 
             rowData['comment'] += '\n\n[點名方式]\n\n' + FOUR_SPACE
-            rowData['comment'] += totalData[row][16]
+            rowData['comment'] += totalData[row][GSHEET.rollStyle]
 
             rowData['comment'] += '\n\n[考試方式]\n\n' + FOUR_SPACE
-            rowData['comment'] += totalData[row][17]
+            rowData['comment'] += totalData[row][GSHEET.testStyle]
 
             rowData['comment'] += '\n\n[報告方式]\n\n' + FOUR_SPACE
-            rowData['comment'] += totalData[row][18]
+            rowData['comment'] += totalData[row][GSHEET.reportStyle]
 
             rowData['comment'] += '\n\n[作業方式]\n\n' + FOUR_SPACE
-            rowData['comment'] += totalData[row][19]
+            rowData['comment'] += totalData[row][GSHEET.homework]
 
             rowData['comment'] += '\n\n[心得]\n\n' + FOUR_SPACE
-            rowData['comment'] += totalData[row][20]
+            rowData['comment'] += totalData[row][GSHEET.comment]
 
             rowData['comment'] += '\n\n[付出]\n\n' + FOUR_SPACE
-            rowData['comment'] += totalData[row][21]
+            rowData['comment'] += totalData[row][GSHEET.devote]
 
             rowData['comment'] += '\n\n[收穫]\n\n' + FOUR_SPACE
-            rowData['comment'] += totalData[row][22] + "\n"
+            rowData['comment'] += totalData[row][GSHEET.gain] + "\n"
 
             rowData['row_gsheet'] = START_ROW
-            rowData['crawl_id'] = regCrawlID(totalData[row][0])
+            rowData['crawl_id'] = regCrawlID(totalData[row][GSHEET.rowId])
             connection.query(makeInsertSQL(rowData), function (err, res, fields) {
                 if (err)
                     console.log(err)
