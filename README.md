@@ -11,3 +11,5 @@
     * lastSemeterId: `course_all` 的最後一個 `id` ( 上學期最後一個課程的 `id` )
 * `refresh_all.py` - 更新全部課程之餘額，確定有無加開、停開課程
 * `update_amount.py` - 更新被追蹤之課程的餘額
+* `gsheetCrawler.json` - 爬取選課心得 google sheet 上面的心得
+    * START_ROW: 希望從 google sheet 上面的哪個 row 開始爬
