@@ -86,7 +86,7 @@ def queUpdater():
 		if row['hadNotify'] == 0 and not row['course_id'] == -1:
 			followedList.append(row['serial'])
 	cnxTmp.close()
-	cursorTmp.close()
+	# cursorTmp.close()
 	deptList = []
 	serialDictByDept = {}
 	for text in followedList:
@@ -165,8 +165,9 @@ for classes in btfs.select('div .institute'): # Graduate
         }
 print ("[Init] {0} depts".format(len(deptDict)))
 
+# general_course is the new feature at 2019-09
 heads = ['dept_name', 'dept_code', 'serial', 'course_code', 'class_code', 'class_type',
-'grade', 'type', 'group', 'english', 'course_name', 'subject_type', 'credit', 'teacher', 
+'grade', 'type', 'group', 'english', 'general_course', 'course_name', 'subject_type', 'credit', 'teacher', 
 'choosed_amount', 'extra_amount', 'time', 'classroom', 'description', 'condition',
 'expert', 'attribute_code', 'cross_master', 'Moocs']
 
