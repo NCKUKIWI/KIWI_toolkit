@@ -254,7 +254,7 @@ def dbUpdater():
 				cursor.execute("""
 				INSERT INTO course_new (`系所名稱`,`系號`,`選課序號`,`課程碼`,`分班碼`,`班別`,`年級`,`類別`,`組別`, `通識總整課程`,`英語授課`,`課程名稱`,
 				`選必修`,`學分`,`老師`,`已選課人數`,`餘額`,`時間`,`教室`,`備註`,`限選條件`,`業界參與`,`屬性碼`,`跨領域學分學程`,`Moocs`,`admit`,`updateTime`)
-				VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+				VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
 				""", ( trimRedundantWord(aCourse['dept_name']), aCourse['dept_code'], aCourse['serial'], aCourse['course_code'], aCourse['class_code'],
 				aCourse['class_type'], aCourse['grade'], aCourse['type'], aCourse['group'], aCourse['general_course'], aCourse['english'], aCourse['course_name'],
 				aCourse['subject_type'], float(aCourse['credit']), aCourse['teacher'], int(aCourse['choosed_amount']), aCourse['extra_amount'],
