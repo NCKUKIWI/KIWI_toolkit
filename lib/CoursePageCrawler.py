@@ -75,7 +75,7 @@ class CoursePageCrawler:
                 aCourse['course_name'] = course_name
                 aCourse['description'] = description
                 aCourse['condition'] = columns[4].select_one(".cond").text.strip()
-                aCourse['credit'] = columns[5].contents[0].strip()
+                aCourse['credit'] = float(columns[5].contents[0].strip())
                 aCourse['subject_type'] = columns[5].contents[2].strip()
                 aCourse['teacher'] = ", ".join(map(lambda ele: html.unescape(ele), filter(lambda ele: isinstance(ele, str), columns[6].contents)))
                 aCourse['choosed_amount'] = int(course_numbers[0])

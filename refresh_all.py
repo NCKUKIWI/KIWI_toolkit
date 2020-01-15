@@ -26,21 +26,7 @@ circleStartTime = 0
 queStartTime = 0
 queUpdaterWorking = False
 
-def queUpdater():
-	global circleStartTime
-	global queStartTime
-	circleStartTime = datetime.datetime.now()
-	deptList = MainPageCrawler().do()
-	crawlerCtr = 1
-	queStartTime = datetime.datetime.now()
-	for dept in deptList:
-		# if num >= 4: break
-		# print (dept)
-		que.put(CoursePageCrawler(dept, crawlerCtr))
-		crawlerCtr += 1
-	print ("[Queueing] Queue size = {0}...!".format(que.qsize()))
-
-def doJob(*args):
+def getNewJobFromQueue(*args):
 	global queUpdaterWorking
 	global allCourseList
 	global waiting
@@ -67,6 +53,20 @@ def doJob(*args):
 			newCourseList = coursePageCrawler.do(threadID)
 			allCourseList += newCourseList
 			waiting[waitingID] = False
+
+def queUpdater():
+	global circleStartTime
+	global queStartTime
+	circleStartTime = datetime.datetime.now()
+	deptList = MainPageCrawler().do()
+	crawlerCtr = 1
+	queStartTime = datetime.datetime.now()
+	for dept in deptList:
+		# if num >= 4: break
+		# print (dept)
+		que.put(CoursePageCrawler(dept, crawlerCtr))
+		crawlerCtr += 1
+	print ("[Queueing] Queue size = {0}...!".format(que.qsize()))
 	
 def dbUpdater():
 	global allCourseList
@@ -189,32 +189,38 @@ def dbUpdater():
 				tmpKey = str(row['id']) + '-' + row['系號'] + '-' + row['課程碼'] + '-' + row['分班碼'] + '-' + row['組別'] + '-' + row['類別'] + '-' + row['班別']
 				tmpLog += '[OLD] |' + datetime.datetime.today().isoformat() + '| '  + tmpKey + '\n'
 		print ('[Select] Finish Select non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
-		# if len(closedCourseIdList) >= 10:
-		# 	logOutput += "[ERR] |" + datetime.datetime.today().isoformat() + "| !!! Unexpected [" + str(len(closedCourseIdList)) + "] Closed Course !!!\n"
-		# elif len(closedCourseIdList) > 0:
-		if(True): # Toggle here for deleting the old course
+
+		# Comment Below to delete old courses
+		# -----------------------------------
+		if len(closedCourseIdList) >= 10:
+			logOutput += "[ERR] |" + datetime.datetime.today().isoformat() + "| !!! Unexpected [" + str(len(closedCourseIdList)) + "] Closed Course !!!\n"
+		elif len(closedCourseIdList) > 0:
+		# -----------------------------------
+
+		# Comment Below for general using
+		# -----------------------------------
+		# if(True):
+		# -----------------------------------
+
 			logOutput += tmpLog
 			print ('[Delete] Start Clean non-update! Amount: {0}'.format(len(closedCourseIdList)))
 			startTime = datetime.datetime.now()
-			for aCourse in closedCourseIdList:
-				try:
-					query = "DELETE FROM course_new WHERE id = {0};".format(aCourse)
-					cursor.execute(query)
-				except Exception as e:
-					print ("error on exec DELETE non-update [ {0} ] : {1}".format(aCourse, e))
-				else:
-					print ("[Delete] Course Close [ {0} ]".format(aCourse))
+			closedCourseIdTxt = ",".join(closedCourseIdList)
+			try:
+				query = "DELETE FROM course_new WHERE id IN ({0});".format(closedCourseIdTxt)
+				cursor.execute(query)
+			except Exception as e:
+				print ("error on exec DELETE non-update: {1}".format(e))
 			cnx.commit()
 			print ('[Delete] Finish Clean non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
 
 			print ('[ModFollow] Start Modify Follow! Amount: {0}'.format(len(closedCourseIdList)))
 			startTime = datetime.datetime.now()
-			for aCourse in closedCourseIdList:
-				try:
-					query = "UPDATE follow SET course_id=-1 WHERE course_id={0};".format(aCourse)
-					cursor.execute(query)
-				except Exception as e:
-					print ("error on exec UPDATE closedCourse Follow [ {0} ] : {1}".format(aCourse, e))
+			try:
+				query = "UPDATE follow SET course_id=-1 WHERE course_id IN ({0});".format(closedCourseIdTxt)
+				cursor.execute(query)
+			except Exception as e:
+				print ("error on exec UPDATE closedCourse Follow: {1}".format(e))
 			cnx.commit()
 			print ('[ModFollow] Finish Modify Follow! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
 
@@ -231,7 +237,7 @@ try:
 	thread_arr = []
 	for i in range(thread_amount):
 		threadID = i + 1
-		thread_arr.append(threading.Thread(target=doJob, name='Thd' + str(threadID), args=(que, threadID, i)))
+		thread_arr.append(threading.Thread(target=getNewJobFromQueue, name='Thd' + str(threadID), args=(que, threadID, i)))
 		thread_arr[i].daemon = True
 	for i in range(thread_amount):
 		thread_arr[i].start()
