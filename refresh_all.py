@@ -12,8 +12,8 @@ import json as jsonpkg
 import re
 from bs4 import BeautifulSoup as bs
 
-from lib.MainPageCrawler import *
-from lib.CoursePageCrawler import *
+from lib.MainPageCrawler import MainPageCrawler
+from lib.CoursePageCrawler import CoursePageCrawler
 
 # Modify thread amount here
 thread_amount = 4
