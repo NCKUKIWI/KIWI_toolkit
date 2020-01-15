@@ -7,10 +7,7 @@ import datetime
 import MySQLdb as mysql
 import queue, time, threading
 import sys
-import requests
 import json as jsonpkg
-import re
-from bs4 import BeautifulSoup as bs
 
 from lib.MainPageCrawler import MainPageCrawler
 from lib.CoursePageCrawler import CoursePageCrawler
@@ -18,18 +15,22 @@ from lib.CoursePageCrawler import CoursePageCrawler
 # Modify thread amount here
 thread_amount = 4
 
-session = requests.Session()
-cookies={
-	"name":'PHPSESSID',
-	"value":'7146f90669566cdd9f4cb57dcbe6e4b1'
-}
-session.cookies.set(**cookies)
+db_config = {}
+with open( 'config.crawler.json') as f:
+	db_config = jsonpkg.load(f)['db_py']
+
+que = queue.Queue()
+allCourseList = []
+waiting = []
+circleStartTime = 0
+queStartTime = 0
+queUpdaterWorking = False
 
 def queUpdater():
 	global circleStartTime
 	global queStartTime
 	circleStartTime = datetime.datetime.now()
-	deptList = MainPageCrawler().do(session)
+	deptList = MainPageCrawler().do()
 	crawlerCtr = 1
 	queStartTime = datetime.datetime.now()
 	for dept in deptList:
@@ -63,7 +64,7 @@ def doJob(*args):
 				time.sleep(5)
 		if queue.qsize() > 0:
 			coursePageCrawler = que.get()
-			newCourseList = coursePageCrawler.do(session, threadID)
+			newCourseList = coursePageCrawler.do(threadID)
 			allCourseList += newCourseList
 			waiting[waitingID] = False
 	
@@ -222,22 +223,6 @@ def dbUpdater():
 	with open('devLog', 'a') as f:
 		f.write(logOutput)
 
-# admit is the new feature at 2019-09
-heads = ['dept_name', 'dept_code', 'serial', 'course_code', 'class_code', 'class_type',
-'grade', 'type', 'group', 'english',  'course_name', 'subject_type', 'credit', 'teacher', 
-'choosed_amount', 'extra_amount', 'time', 'classroom', 'description', 'condition',
-'expert', 'attribute_code', 'cross_master', 'Moocs', 'admit']
-db_config = {}
-
-with open( 'config.crawler.json') as f:
-	db_config = jsonpkg.load(f)['db_py']
-
-que = queue.Queue()
-allCourseList = []
-waiting = []
-circleStartTime = 0
-queStartTime = 0
-queUpdaterWorking = False
 queUpdater()
 for i in range(thread_amount):
 	waiting.append(False)
@@ -245,7 +230,8 @@ for i in range(thread_amount):
 try:
 	thread_arr = []
 	for i in range(thread_amount):
-		thread_arr.append(threading.Thread(target=doJob, name='Thd' + str(i+1), args=(que,'Thd[' + str(i+1) + ']', i)))
+		threadID = i + 1
+		thread_arr.append(threading.Thread(target=doJob, name='Thd' + str(threadID), args=(que, threadID, i)))
 		thread_arr[i].daemon = True
 	for i in range(thread_amount):
 		thread_arr[i].start()
