@@ -1,7 +1,5 @@
 import requests
 
-
-
 class AutoRetryRequest:
     session = requests.Session()
     cookies={

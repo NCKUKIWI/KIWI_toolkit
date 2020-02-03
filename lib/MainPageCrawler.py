@@ -2,8 +2,6 @@ import datetime
 import re
 from bs4 import BeautifulSoup as bs
 
-from AutoRetryRequest import AutoRetryRequest
-
 ProcessName = "Init"
 
 class MainPageCrawler:
@@ -31,6 +29,9 @@ class MainPageCrawler:
         return deptList
         
 if __name__ == '__main__':
+    from AutoRetryRequest import AutoRetryRequest
     aCrawler = MainPageCrawler()
     result = aCrawler.do()
     print(result)
+else:
+    from lib.AutoRetryRequest import AutoRetryRequest
