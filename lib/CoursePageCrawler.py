@@ -3,7 +3,7 @@ import re
 import html
 from bs4 import BeautifulSoup as bs
 
-from AutoRetryRequest import AutoRetryRequest
+from lib.AutoRetryRequest import AutoRetryRequest
 
 class CoursePageCrawler:
     def __init__(self, deptInfo, crawlerCtr):

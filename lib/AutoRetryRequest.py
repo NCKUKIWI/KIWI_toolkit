@@ -1,12 +1,10 @@
 import requests
 
-
-
 class AutoRetryRequest:
     session = requests.Session()
     cookies={
         "name":'PHPSESSID',
-        "value":'7146f90669566cdd9f4cb57dcbe6e4b1'
+        "value":'c17c5fc5df8ea2d9b41a2195f2feb0e4'
     }
     session.cookies.set(**cookies)
     default_options = {
@@ -31,7 +29,7 @@ class AutoRetryRequest:
         return self.autoRetry(request)
 
     def autoRetry(self, request):
-        while self.retryCtr < 3:
+        while self.retryCtr < self.retryTimes:
             try:
                 res = request()
                 if not res.status_code == 200:
