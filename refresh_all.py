@@ -19,24 +19,23 @@ db_config = {}
 with open( 'config.crawler.json') as f:
 	db_config = jsonpkg.load(f)['db_py']
 
-que = queue.Queue()
+coursePageQueue = queue.Queue()
 allCourseList = []
-waiting = []
+waitingThread = []
 circleStartTime = 0
 queStartTime = 0
 queUpdaterWorking = False
 
-def getNewJobFromQueue(*args):
+def getNewJobFromQueue(threadID):
 	global queUpdaterWorking
 	global allCourseList
-	global waiting
-	queue = args[0]
-	threadID = args[1]
-	waitingID = args[2]
+	global waitingThread
+	global coursePageQueue
+	waitingID = threadID - 1
 	while True:
-		if queue.qsize() == 0:
-			waiting[waitingID] = True
-			if (not False in waiting) and (not queUpdaterWorking):
+		if coursePageQueue.qsize() == 0:
+			waitingThread[waitingID] = True
+			if (not False in waitingThread) and (not queUpdaterWorking):
 				queUpdaterWorking = True
 				# print(allCourseList)
 				global circleStartTime
@@ -48,11 +47,11 @@ def getNewJobFromQueue(*args):
 				queUpdaterWorking = False
 			else:
 				time.sleep(5)
-		if queue.qsize() > 0:
-			coursePageCrawler = que.get()
+		if coursePageQueue.qsize() > 0:
+			coursePageCrawler = coursePageQueue.get()
 			newCourseList = coursePageCrawler.do(threadID)
 			allCourseList += newCourseList
-			waiting[waitingID] = False
+			waitingThread[waitingID] = False
 
 def queUpdater():
 	global circleStartTime
@@ -64,9 +63,9 @@ def queUpdater():
 	for dept in deptList:
 		# if num >= 4: break
 		# print (dept)
-		que.put(CoursePageCrawler(dept, crawlerCtr))
+		coursePageQueue.put(CoursePageCrawler(dept, crawlerCtr))
 		crawlerCtr += 1
-	print ("[Queueing] Queue size = {0}...!".format(que.qsize()))
+	print ("[Queueing] Queue size = {0}...!".format(coursePageQueue.qsize()))
 	
 def dbUpdater():
 	global allCourseList
@@ -74,7 +73,7 @@ def dbUpdater():
 	allCourseList = []
 	closedCourseIdList = []
 	followedList = []
-	tmpOriCourses = {}
+	oriCourseSerialDict = {}
 	gotErr = False
 	logOutput = ""
 	
@@ -96,16 +95,11 @@ def dbUpdater():
 				continue
 			else:
 				for row in cursor:
-					tmpKey = row['系號'] + '-' + row['選課序號']  + '-' + row['課程碼'] + '-' + row['分班碼'] + '-' + row['組別'] + '-' + row['類別'] + '-' + row['班別']
-					tmpOriCourses[tmpKey] = row['id']
+					tmpKey = row['選課序號']
+					oriCourseSerialDict[tmpKey] = row['id']
 				break
 		else:
 			raise Exception("Retry Too Many Times")
-	for aCourse in localAllCourseList:
-		tmpKey = aCourse['dept_code'] + '-' + aCourse['serial']  + '-' + aCourse['course_code'] + '-' + aCourse['class_code'] + '-' + aCourse['group'] + '-' + aCourse['type'] + '-' + aCourse['class_type']
-		aCourse['id'] = tmpOriCourses.get(tmpKey, -1)
-		if aCourse['id'] == -1:
-			logOutput += '[NEW] |' + datetime.datetime.today().isoformat() + '| ' + tmpKey + '\n'
 	print ('[Selecter] Finish Select! Spending time = {0}!'.format(datetime.datetime.utcnow()-startTime))
 
 	print ('[Selecter] Start Getting Followed List!')
@@ -131,6 +125,7 @@ def dbUpdater():
 	print ('[Updater] Start Update and Insert!')
 	timeStamp = datetime.datetime.utcnow()
 	for aCourse in localAllCourseList:
+		aCourse['id'] = oriCourseSerialDict.get(aCourse['serial'], -1)
 		if not aCourse['id'] == -1:
 			if aCourse['serial'] in followedList:
 				try:
@@ -159,6 +154,7 @@ def dbUpdater():
 					print ("error on exec UPDATE [ {0} ] : {1}".format(aCourse, e))
 					gotErr = True
 		else:
+			logOutput += '[NEW] |' + datetime.datetime.today().isoformat() + '| ' + tmpKey + '\n'
 			try:
 				cursor.execute("""
 				INSERT INTO course_new (`系所名稱`,`系號`,`選課序號`,`課程碼`,`分班碼`,`班別`,`年級`,`類別`,`組別`,`英語授課`,`課程名稱`,
@@ -190,14 +186,14 @@ def dbUpdater():
 				tmpLog += '[OLD] |' + datetime.datetime.today().isoformat() + '| '  + tmpKey + '\n'
 		print ('[Select] Finish Select non-update! Spending time = {0}!'.format(datetime.datetime.now()-startTime))
 
-		# Comment Below to delete old courses
+		# Uncomment Following for General Using
 		# -----------------------------------
 		if len(closedCourseIdList) >= 10:
 			logOutput += "[ERR] |" + datetime.datetime.today().isoformat() + "| !!! Unexpected [" + str(len(closedCourseIdList)) + "] Closed Course !!!\n"
 		elif len(closedCourseIdList) > 0:
 		# -----------------------------------
 
-		# Comment Below for general using
+		# Uncomment Following to Delete Old Courses
 		# -----------------------------------
 		# if(True):
 		# -----------------------------------
@@ -231,13 +227,13 @@ def dbUpdater():
 
 queUpdater()
 for i in range(thread_amount):
-	waiting.append(False)
+	waitingThread.append(False)
 
 try:
 	thread_arr = []
 	for i in range(thread_amount):
 		threadID = i + 1
-		thread_arr.append(threading.Thread(target=getNewJobFromQueue, name='Thd' + str(threadID), args=(que, threadID, i)))
+		thread_arr.append(threading.Thread(target=getNewJobFromQueue, name='Thd' + str(threadID), args={threadID: threadID}))
 		thread_arr[i].daemon = True
 	for i in range(thread_amount):
 		thread_arr[i].start()
