@@ -2,8 +2,6 @@ import datetime
 import re
 from bs4 import BeautifulSoup as bs
 
-from lib.AutoRetryRequest import AutoRetryRequest
-
 ProcessName = "Init"
 
 class MainPageCrawler:
@@ -33,6 +31,9 @@ class MainPageCrawler:
         raise Exception("Retry Too Many Times")
         
 if __name__ == '__main__':
+    from AutoRetryRequest import AutoRetryRequest
     aCrawler = MainPageCrawler()
     result = aCrawler.do()
     print(result)
+else:
+    from lib.AutoRetryRequest import AutoRetryRequest

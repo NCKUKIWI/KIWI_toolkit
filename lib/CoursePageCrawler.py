@@ -3,8 +3,6 @@ import re
 import html
 from bs4 import BeautifulSoup as bs
 
-from lib.AutoRetryRequest import AutoRetryRequest
-
 class CoursePageCrawler:
     def __init__(self, deptInfo, crawlerCtr):
         self.deptInfo = deptInfo
@@ -101,7 +99,10 @@ class CoursePageCrawler:
         return courseList
 
 if __name__ == '__main__':
+    from AutoRetryRequest import AutoRetryRequest
     dept = {'code': 'A9', 'name': '通識中心 GE'}
     aCrawler = CoursePageCrawler(dept, 1)
     deptResult = aCrawler.do(0)
     print(deptResult)
+else:
+    from lib.AutoRetryRequest import AutoRetryRequest
