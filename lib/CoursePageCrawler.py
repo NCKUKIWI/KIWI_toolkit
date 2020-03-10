@@ -12,7 +12,7 @@ class CoursePageCrawler:
         st = datetime.datetime.now()
         process_name = "Thread #{0}|Crawler #{1}|Dept \"{2}\"".format(threadID, self.crawlerCtr, self.deptInfo['name'])
         autoRetryRequest = AutoRetryRequest(process_name)
-        req_options_token = {'data': {'dept_no': self.deptInfo['code']}}
+        req_options_token = {'data': {'dept_no': self.deptInfo['code'], 'crypt': self.deptInfo['crypt']}}
         res_token = autoRetryRequest.post("https://course.ncku.edu.tw/index.php?c=qry_all&m=result_init", req_options_token)
         token = res_token.json()['id']
         req_options_course = {'headers': {'referer': 'https://course.ncku.edu.tw/index.php?c=qry_all'}}
@@ -75,10 +75,10 @@ class CoursePageCrawler:
                 aCourse['condition'] = columns[4].select_one(".cond").text.strip()
                 aCourse['credit'] = float(columns[5].contents[0].strip())
                 aCourse['subject_type'] = columns[5].contents[2].strip()
-                aCourse['teacher'] = ", ".join(map(lambda ele: html.unescape(ele), filter(lambda ele: isinstance(ele, str), columns[6].contents)))
+                aCourse['teacher'] = ", ".join(map(lambda ele: ele, filter(lambda ele: isinstance(ele, str), columns[6].contents)))
                 aCourse['choosed_amount'] = int(course_numbers[0])
                 aCourse['extra_amount'] = extra_amount
-                aCourse['time'] = columns[8].contents[0].strip()
+                aCourse['time'] = " ".join(map(lambda ele: ele.strip(), filter(lambda ele: isinstance(ele, str), columns[8].contents)))
                 aCourse['classroom'] = classroom
                 aCourse['english'] = english
                 aCourse['expert'] = expert
@@ -100,7 +100,9 @@ class CoursePageCrawler:
 
 if __name__ == '__main__':
     from AutoRetryRequest import AutoRetryRequest
-    dept = {'code': 'A9', 'name': '通識中心 GE'}
+    autoRetryRequest = AutoRetryRequest("Test")
+    res = autoRetryRequest.get("https://course.ncku.edu.tw/index.php?c=qry_all")
+    dept = {'code': 'E6', 'name': '土木系 CE', 'crypt': re.findall(r"'crypt'\s*:\s*'(.*)'",res.text)[0]}
     aCrawler = CoursePageCrawler(dept, 1)
     deptResult = aCrawler.do(0)
     print(deptResult)

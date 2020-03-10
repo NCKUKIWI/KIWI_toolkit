@@ -19,6 +19,7 @@ db_config = {}
 with open( 'config.crawler.json') as f:
 	db_config = jsonpkg.load(f)['db_py']
 
+db_config["charset"] = "utf8mb4"
 coursePageQueue = queue.Queue()
 allCourseList = []
 waitingThread = []

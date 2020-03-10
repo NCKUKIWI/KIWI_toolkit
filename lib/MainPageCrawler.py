@@ -15,12 +15,14 @@ class MainPageCrawler:
             autoRetryRequest = AutoRetryRequest(ProcessName)
             res = autoRetryRequest.get("https://course.ncku.edu.tw/index.php?c=qry_all")
             btfs = bs(res.text, "html5lib")
+            crypt = re.findall(r"'crypt'\s*:\s*'(.*)'", res.text)[0]
             deptList = []
             for dept in btfs.select('div.hidden-xs li.btn_dept'):
                 deptTxt = re.match(r"\(([A-Z0-9]{2})\)(.*)", dept.text)
                 deptDict = {
                     'code': deptTxt.group(1),
-                    'name': deptTxt.group(2).strip()
+                    'name': deptTxt.group(2).strip(),
+                    'crypt': crypt
                 }
                 deptList.append(deptDict)
             if len(deptList) == 0:

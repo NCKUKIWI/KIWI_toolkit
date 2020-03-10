@@ -1,10 +1,11 @@
 import requests
+import re
 
 class AutoRetryRequest:
     session = requests.Session()
     cookies={
         "name":'PHPSESSID',
-        "value":'c17c5fc5df8ea2d9b41a2195f2feb0e4'
+        "value":'435e04667cc3d0304f50ad7a77fc160e'
     }
     session.cookies.set(**cookies)
     default_options = {
@@ -50,5 +51,7 @@ class AutoRetryRequest:
             else:
                 res.close()
                 res.encoding = "utf-8"
+                if len(re.findall(r"(RobotCheck)", res.text)) is not 0:
+                    raise Exception("超過流量，請到網站 https://course.ncku.edu.tw/index.php?c=qry_all 輸入驗證碼，再將 cookies 裡的 PHPSESSID 貼到 AutoRetryRequest")
                 return res
         raise Exception("Retry Too Many Times")
