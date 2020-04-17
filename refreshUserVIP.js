@@ -12,8 +12,8 @@ connection.connect();
 
 // ******* Modify here ********
 
-var currentSemester = "108-1";
-var preSemester = "107-2";
+var currentSemester = "108-2";
+var preSemester = "108-1";
 
 // ****************************
 

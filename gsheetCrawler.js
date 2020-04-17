@@ -12,8 +12,8 @@
  */
 
 // ******* Modify here ********
-// LastRow=588          Update at 2019.06.23
-var START_ROW = 589; // The row in google sheet where you want to start crawling. 
+// LastRow=709          Update at 2020.03.30
+var START_ROW = 710; // The row in google sheet where you want to start crawling. 
 // ****************************
 
 
@@ -147,10 +147,3 @@ function makeInsertSQL(data) {
     let sql = `INSERT INTO post (${name}) VALUES (${value})`
     return sql;
 }
-
-
-
-
-
-
-
