@@ -1,12 +1,8 @@
 var fs = require('fs');
-//var express = require('express');
 var request = require('request');
 var mysql = require('mysql');
 
-// var app = express();
-// app.listen(3000);
-
-//config相關變數
+//引入config相關變數
 var config = fs.readFileSync("./config.crawler.json", 'utf8');
 config = JSON.parse(config);
 
@@ -23,26 +19,18 @@ conn.connect(function (err) {
     console.log('Connect success!');
 })
 
-
-
-
-
-//測試用本地json檔
-var dep_data = fs.readFileSync("./data.json", 'utf8');
-dep_data = JSON.parse(dep_data);
 //--------執行區--------
 
-// craw_dept();
-craw_course();
-// craw_extra_amout_amount();
+
+// craw_dept();     //科系編號、名稱
+// craw_course();   //課程資料
+// craw_extra_amout_amount();   //更新餘額資料
 
 
 //---------END----------
 
-
-//request DeptAPI
+//科系編號、名稱
 function craw_dept() {
-    //串接API
     let option = {
         url: dept_url,
         method: 'GET',
@@ -68,6 +56,7 @@ function craw_dept() {
     })
 }
 
+//課程資料
 function craw_course() {
     //串接API
     let option = {
@@ -104,17 +93,11 @@ function craw_course() {
                 let condition = input[element].condition;
                 let credit = input[element].credit;
                 let subject_type = input[element].subject_type;
-
-
-                //這邊還要修
-                //Error: ER_TRUNCATED_WRONG_VALUE_FOR_FIELD: Incorrect string value: '\xF3\xB9\x98\x95\xE5\xBD...' for column '老師' at row 1398
                 let teacher = "";
                 input[element].teacher.forEach(teacher_no => {
                     teacher += teacher_no + ","
                 });
                 teacher = teacher.substring(0, teacher.length - 1);
-
-
                 let choosed_amount = parseInt(input[element].choosed_amount);
                 let extra_amount = parseInt(input[element].extra_amount);
                 extra_amount = extra_amount || 0; //若extra_amount是字串("餘額")，praseInt後會變成NaN(Not a Number)，轉為0。詳細查"js NaN to 0"
@@ -160,14 +143,13 @@ function craw_course() {
                 if (err) throw err;
                 console.log("4.用temp UPDATE course_new，資料行數: " + result.affectedRows);
             });
-
-
         } else {
             throw error
         }
     })
 }
 
+//更新餘額資料
 function craw_extra_amout_amount() {
     //串接API
     let option = {
@@ -214,8 +196,6 @@ function craw_extra_amout_amount() {
                 if (err) throw err;
                 console.log("2.用 temp UPDATE course_new，資料行數: " + result.affectedRows);
             });
-
-
         } else {
             throw error
         }
