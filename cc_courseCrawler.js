@@ -1,3 +1,4 @@
+var schedule = require('node-schedule');
 var fs = require('fs');
 var request = require('request');
 var mysql = require('mysql');
@@ -19,15 +20,33 @@ conn.connect(function (err) {
     console.log('Connect success!');
 })
 
+// 定時規則
+let course_rule = new schedule.RecurrenceRule();
+let extra_amount_rule = new schedule.RecurrenceRule();
+course_rule.hour = [10, 16]; // 早上10點和下午4點更新一次課程
+extra_amount_rule.second = [0, 30]; // 每30秒更新一次課程餘額
+
+// 啟動任務
+let course_refresh = schedule.scheduleJob(course_rule, () => {
+    craw_course();
+    console.log("課程資料已更新，時間" + new Date());
+});
+let extra_amount_refresh = schedule.scheduleJob(extra_amount_rule, () => {
+    craw_extra_amout_amount()
+    console.log("課程餘額已更新，時間" + new Date());
+});
+
+
+
 //--------執行區--------
-
-
-// craw_dept();     //科系編號、名稱
-// craw_course();   //課程資料
+craw_dept(); //科系編號、名稱(每學期僅需執行一次)
+course_refresh;
+extra_amount_refresh;
+// craw_course();               //課程資料
 // craw_extra_amout_amount();   //更新餘額資料
-
-
 //---------END----------
+
+
 
 //科系編號、名稱
 function craw_dept() {
@@ -194,7 +213,7 @@ function craw_extra_amout_amount() {
             sql_3 += " WHERE new.選課序號=temp.選課序號;";
             conn.query(sql_3, function (err, result) {
                 if (err) throw err;
-                console.log("2.用 temp UPDATE course_new，資料行數: " + result.affectedRows);
+                console.log("3.用 temp UPDATE course_new，資料行數: " + result.affectedRows);
             });
         } else {
             throw error
