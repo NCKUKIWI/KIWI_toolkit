@@ -40,10 +40,8 @@ let extra_amount_refresh = schedule.scheduleJob(extra_amount_rule, () => {
 
 //--------執行區--------
 craw_dept(); //科系編號、名稱(每學期僅需執行一次)
-course_refresh;
-extra_amount_refresh;
-// craw_course();               //課程資料
-// craw_extra_amout_amount();   //更新餘額資料
+craw_course(); //更新課程資料
+craw_extra_amout_amount(); //更新餘額資料
 //---------END----------
 
 
@@ -64,7 +62,7 @@ function craw_dept() {
                 let name = body.data[element].dep_name;
                 value.push([no, name]);
             });
-            let sql = "INSERT IGNORE INTO cc_department_all (DepPrefix, DepName) VALUES ?";
+            let sql = "INSERT IGNORE INTO department_all (DepPrefix, DepName) VALUES ?";
             conn.query(sql, [value], function (err, result) {
                 if (err) throw err;
                 console.log("Number of records inserted: " + result.affectedRows);
@@ -133,25 +131,25 @@ function craw_course() {
             //                  3.用temp UPDATE course_new(更新course_new上的舊課程資訊)
             //                  4.將資料INSERT IGNORE INTO course_new(舊課程不動，放入新課程)
             //1.Truncate清空temp table
-            var sql_1 = "TRUNCATE TABLE cc_course_new_temp";
+            var sql_1 = "TRUNCATE TABLE course_new_temp";
             conn.query(sql_1, function (err, result) {
                 if (err) throw err;
                 console.log("1.Truncate清空temp table，資料行數: " + result.affectedRows);
             });
             //2.將資料INSERT IGNORE INTO course_new
-            var sql_2 = "INSERT IGNORE INTO cc_course_new (系所名稱, 系號, 選課序號, 課程碼, 分班碼, 班別, 年級, 類別, 英語授課, 課程名稱, 選必修, 學分, 老師, 已選課人數, 餘額, 時間, 教室, 備註, 限選條件, 業界參與, 屬性碼, 跨領域學分學程, Moocs) VALUES ?";
+            var sql_2 = "INSERT IGNORE INTO course_new (系所名稱, 系號, 選課序號, 課程碼, 分班碼, 班別, 年級, 類別, 英語授課, 課程名稱, 選必修, 學分, 老師, 已選課人數, 餘額, 時間, 教室, 備註, 限選條件, 業界參與, 屬性碼, 跨領域學分學程, Moocs) VALUES ?";
             conn.query(sql_2, [value], function (err, result) {
                 if (err) throw err;
                 console.log("2.將資料INSERT IGNORE INTO course_new，資料行數: " + result.affectedRows);
             });
             //3.將新撈資料放進temp table(暫存到資料庫，讓比對choosed_code運算在SQL主機上)
-            var sql_3 = "INSERT INTO cc_course_new_temp (系所名稱, 系號, 選課序號, 課程碼, 分班碼, 班別, 年級, 類別, 英語授課, 課程名稱, 選必修, 學分, 老師, 已選課人數, 餘額, 時間, 教室, 備註, 限選條件, 業界參與, 屬性碼, 跨領域學分學程, Moocs) VALUES ?";
+            var sql_3 = "INSERT INTO course_new_temp (系所名稱, 系號, 選課序號, 課程碼, 分班碼, 班別, 年級, 類別, 英語授課, 課程名稱, 選必修, 學分, 老師, 已選課人數, 餘額, 時間, 教室, 備註, 限選條件, 業界參與, 屬性碼, 跨領域學分學程, Moocs) VALUES ?";
             conn.query(sql_3, [value], function (err, result) {
                 if (err) throw err;
                 console.log("3.將新撈資料放進temp table，資料行數: " + result.affectedRows);
             });
             //4.用temp UPDATE course_new(更新course_new上的舊課程資訊)
-            var sql_4 = "UPDATE cc_course_new AS new,cc_course_new_temp AS temp SET ";
+            var sql_4 = "UPDATE course_new AS new,course_new_temp AS temp SET ";
             var column_name = ["系所名稱", "系號", "課程碼", "分班碼", "班別", "年級", "類別", "英語授課", "課程名稱", "選必修", "學分", "老師", "已選課人數", "餘額", "時間", "教室", "備註", "限選條件", "業界參與", "屬性碼", "跨領域學分學程", "Moocs"]
             column_name.forEach(element => {
                 sql_4 += " new." + element + "=" + "temp." + element + ",";
@@ -192,19 +190,19 @@ function craw_extra_amout_amount() {
             //                  2.用 temp UPDATE course_new(用temp更新course_new上的餘額資訊)
             //                  3.將新撈餘額INSERT INTO temp
             //1. Truncate清空temp
-            var sql_1 = "TRUNCATE TABLE cc_course_choosedamount_temp";
+            var sql_1 = "TRUNCATE TABLE course_new_choosedamount";
             conn.query(sql_1, function (err, result) {
                 if (err) throw err;
                 console.log("1.Truncate清空temp table，資料行數: " + result.affectedRows);
             });
             //1.將新撈餘額INSERT INTO temp
-            var sql_2 = "INSERT INTO cc_course_choosedamount_temp (選課序號, 已選課人數, 餘額) VALUES ?";
+            var sql_2 = "INSERT INTO course_new_choosedamount (選課序號, 已選課人數, 餘額) VALUES ?";
             conn.query(sql_2, [value], function (err, result) {
                 if (err) throw err;
                 console.log("2.將新撈餘額INSERT INTO temp，資料行數: " + result.affectedRows);
             });
             //3.用 temp UPDATE course_new(用temp更新course_new上的餘額資訊)
-            var sql_3 = "UPDATE cc_course_new AS new,cc_course_choosedamount_temp AS temp SET ";
+            var sql_3 = "UPDATE course_new AS new,course_new_choosedamount AS temp SET ";
             var column_name = ["已選課人數", "餘額"]
             column_name.forEach(element => {
                 sql_3 += " new." + element + "=" + "temp." + element + ",";
