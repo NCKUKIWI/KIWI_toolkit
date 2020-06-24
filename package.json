@@ -9,9 +9,10 @@
   "author": "nick",
   "license": "ISC",
   "dependencies": {
-    "cheerio": "^1.0.0-rc.2",
+    "cheerio": "^1.0.0-rc.3",
     "googleapis": "^46.0.0",
-    "mysql": "^2.13.0",
-    "request": "^2.88.0"
+    "mysql": "^2.18.1",
+    "node-schedule": "^1.3.2",
+    "request": "^2.88.2"
   }
 }
