@@ -8,13 +8,18 @@ var config = fs.readFileSync("./config.crawler.json", 'utf8');
 config = JSON.parse(config);
 
 //宣告config相關變數
-var db_config = config.db_js;
 var dept_url = config.ncku_cc.dept_url;
 var course_url = config.ncku_cc.course_url;
 var extra_amout_url = config.ncku_cc.extra_amout_url;
 
 //MySQL連結
-conn = mysql.createConnection(db_config);
+conn = mysql.createConnection({
+    host: config.db.host,
+    user: config.db.user,
+    password: config.db.pw,
+    database: config.db.database,
+    port: config.db.port,
+});
 conn.connect(function (err) {
     if (err) throw err;
     console.log('Connect success!');
