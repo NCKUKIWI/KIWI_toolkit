@@ -8,7 +8,6 @@ var config = fs.readFileSync("./config.crawler.json", 'utf8');
 config = JSON.parse(config);
 
 //宣告config相關變數
-var db_config = config.db_js;
 var dept_url = config.ncku_cc.dept_url;
 var course_url = config.ncku_cc.course_url;
 var extra_amout_url = config.ncku_cc.extra_amout_url;
