@@ -15,6 +15,7 @@
 * `refreshUserVIP.js` - 刪除前學期messenger_code中未開通小幫手服務的user，並初始化新學期的user_code資料
   * currentSemester:新學期
   * preSemester:前學期
+* `cc_courseCrawler.js` - 使用串接成大計中提供的課程API服務
 
 ## Todo
 

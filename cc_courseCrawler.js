@@ -14,7 +14,14 @@ var course_url = config.ncku_cc.course_url;
 var extra_amout_url = config.ncku_cc.extra_amout_url;
 
 //MySQL連結
-conn = mysql.createConnection(db_config);
+conn = mysql.createConnection({
+    host: db_config.host,
+    user: db_config.user,
+    password: db_config.pw,
+    database: db_config.database,
+    port: db_config.port,
+    charset: "utf8mb4_general_ci"
+});
 conn.connect(function (err) {
     if (err) throw err;
     console.log('Connect success!');
@@ -129,36 +136,37 @@ function craw_course() {
             //更新課程四步驟SQL：1.Truncate清空temp table
             //                  2.將新撈資料放進temp table(暫存到資料庫，讓比對choosed_code運算在SQL主機上)
             //                  3.用temp UPDATE course_new(更新course_new上的舊課程資訊)
-            //                  4.將資料INSERT IGNORE INTO course_new(舊課程不動，放入新課程)
+            //                  4.從course_new_temp INSERT課程代碼不在course_new的課
             //1.Truncate清空temp table
             var sql_1 = "TRUNCATE TABLE course_new_temp";
             conn.query(sql_1, function (err, result) {
                 if (err) throw err;
                 console.log("1.Truncate清空temp table，資料行數: " + result.affectedRows);
             });
-            //2.將資料INSERT IGNORE INTO course_new
-            var sql_2 = "INSERT IGNORE INTO course_new (系所名稱, 系號, 選課序號, 課程碼, 分班碼, 班別, 年級, 類別, 英語授課, 課程名稱, 選必修, 學分, 老師, 已選課人數, 餘額, 時間, 教室, 備註, 限選條件, 業界參與, 屬性碼, 跨領域學分學程, Moocs) VALUES ?";
+            //2.將新撈資料放進temp table(暫存到資料庫，讓比對choosed_code運算在SQL主機上)
+            var sql_2 = "INSERT course_new_temp (系所名稱, 系號, 選課序號, 課程碼, 分班碼, 班別, 年級, 類別, 英語授課, 課程名稱, 選必修, 學分, 老師, 已選課人數, 餘額, 時間, 教室, 備註, 限選條件, 業界參與, 屬性碼, 跨領域學分學程, Moocs) VALUES ?";
             conn.query(sql_2, [value], function (err, result) {
                 if (err) throw err;
-                console.log("2.將資料INSERT IGNORE INTO course_new，資料行數: " + result.affectedRows);
+                console.log("2.將新撈資料放進temp table，資料行數: " + result.affectedRows);
             });
-            //3.將新撈資料放進temp table(暫存到資料庫，讓比對choosed_code運算在SQL主機上)
-            var sql_3 = "INSERT INTO course_new_temp (系所名稱, 系號, 選課序號, 課程碼, 分班碼, 班別, 年級, 類別, 英語授課, 課程名稱, 選必修, 學分, 老師, 已選課人數, 餘額, 時間, 教室, 備註, 限選條件, 業界參與, 屬性碼, 跨領域學分學程, Moocs) VALUES ?";
-            conn.query(sql_3, [value], function (err, result) {
-                if (err) throw err;
-                console.log("3.將新撈資料放進temp table，資料行數: " + result.affectedRows);
-            });
-            //4.用temp UPDATE course_new(更新course_new上的舊課程資訊)
-            var sql_4 = "UPDATE course_new AS new,course_new_temp AS temp SET ";
+            // // 3.用temp UPDATE course_new(更新course_new上的舊課程資訊)
+            var sql_3 = "UPDATE course_new AS new,course_new_temp AS temp SET ";
             var column_name = ["系所名稱", "系號", "課程碼", "分班碼", "班別", "年級", "類別", "英語授課", "課程名稱", "選必修", "學分", "老師", "已選課人數", "餘額", "時間", "教室", "備註", "限選條件", "業界參與", "屬性碼", "跨領域學分學程", "Moocs"]
             column_name.forEach(element => {
-                sql_4 += " new." + element + "=" + "temp." + element + ",";
+                sql_3 += " new." + element + "=" + "temp." + element + ",";
             });
-            sql_4 = sql_4.substring(0, sql_4.length - 1);
-            sql_4 += " WHERE new.選課序號=temp.選課序號;";
+            sql_3 = sql_3.substring(0, sql_3.length - 1);
+            sql_3 += " WHERE new.選課序號=temp.選課序號;";
+            conn.query(sql_3, function (err, result) {
+                if (err) throw err;
+                console.log("3.用temp UPDATE course_new，資料行數: " + result.affectedRows);
+            });
+            // 4.從course_new_temp INSERT課程代碼不在course_new的課
+            var sql_4 = "INSERT INTO course_new (`系所名稱`, `系號`, `選課序號`, `課程碼`, `分班碼`, `班別`, `年級`, `類別`, `英語授課`, `課程名稱`, `選必修`, `學分`, `老師`, `已選課人數`, `餘額`, `時間`, `教室`, `備註`, `限選條件`, `業界參與`, `屬性碼`, `跨領域學分學程`, `Moocs`) ";
+            sql_4 += "SELECT `系所名稱`, `系號`, `選課序號`, `課程碼`, `分班碼`, `班別`, `年級`, `類別`, `英語授課`, `課程名稱`, `選必修`, `學分`, `老師`, `已選課人數`, `餘額`, `時間`, `教室`, `備註`, `限選條件`, `業界參與`, `屬性碼`, `跨領域學分學程`, `Moocs` FROM course_new_temp WHERE 選課序號 NOT IN (SELECT 選課序號 FROM course_new)";
             conn.query(sql_4, function (err, result) {
                 if (err) throw err;
-                console.log("4.用temp UPDATE course_new，資料行數: " + result.affectedRows);
+                console.log("4.從course_new_temp INSERT課程代碼不在course_new的課，資料行數: " + result.affectedRows);
             });
         } else {
             throw error
