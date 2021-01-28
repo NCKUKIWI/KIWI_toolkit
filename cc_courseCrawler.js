@@ -6,6 +6,7 @@ var mysql = require('mysql');
 //引入config相關變數
 var config = fs.readFileSync("./config.crawler.json", 'utf8');
 config = JSON.parse(config);
+var db_config = config.db_js;
 
 //宣告config相關變數
 var dept_url = config.ncku_cc.dept_url;
