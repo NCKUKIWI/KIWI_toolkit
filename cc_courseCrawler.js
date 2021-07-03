@@ -39,7 +39,7 @@ let course_refresh = schedule.scheduleJob(course_rule, () => {
     console.log("課程資料已更新，時間" + new Date());
 });
 let extra_amount_refresh = schedule.scheduleJob(extra_amount_rule, () => {
-    craw_extra_amout_amount()
+    craw_extra_amout_amount();
     console.log("課程餘額已更新，時間" + new Date());
 });
 
@@ -53,29 +53,53 @@ craw_extra_amout_amount(); //更新餘額資料
 
 
 
-//科系編號、名稱
+// 科系編號、名稱
 function craw_dept() {
     let option = {
         url: dept_url,
         method: 'GET',
         json: true,
     };
+
     request(option, function (error, respond, body) {
+        //200:請求成功
         if (!error && respond.statusCode == 200) {
-            let value = []
-            let keys = Object.keys(body.data);
-            keys.forEach(element => {
-                let no = body.data[element].dept_no;
-                let name = body.data[element].dep_name;
-                value.push([no, name]);
-            });
-            let sql = "INSERT IGNORE INTO department_all (DepPrefix, DepName) VALUES ?";
-            conn.query(sql, [value], function (err, result) {
-                if (err) throw err;
-                console.log("Number of records inserted: " + result.affectedRows);
+            conn.query("SELECT DepPrefix, DepName FROM department_all", function (err, result) {
+                if (err) 
+                    throw err;
+                else{ 
+                    //從資料庫取出已有的DepPrefix
+                    let orginalData = [];
+                    let temp_keys = Object.keys(result);
+                    temp_keys.forEach(element =>{
+                        orginalData.push(result[element].DepPrefix)
+                    });
+
+                    //比對是否有新的DepPrefix加入，若有加入value這個陣列
+                    let value = [];
+                    let keys = Object.keys(body.data);
+                    keys.forEach(element => {
+                        const isExist = (Data) => Data == element;
+                        if (orginalData.some(isExist) == false){
+                            let name = body.data[element].dep_name;
+                            value.push([element, name]);
+                        }
+                    });
+                    //將新的系所資料插入資料庫
+                    if(value.length > 0){
+                        let sql = "INSERT INTO department_all (DepPrefix, DepName) VALUES ? ";
+                        conn.query(sql, [value], function (err, result) {
+                            if (err) throw err;
+                            console.log("Number of records inserted: " + result.affectedRows);
+                        }); 
+                    }
+                    else{
+                        console.log("系所總數未變動");
+                    }
+                }
             });
         } else {
-            throw error
+            throw error;
         }
     })
 }
@@ -144,7 +168,7 @@ function craw_course() {
                 console.log("1.Truncate清空temp table，資料行數: " + result.affectedRows);
             });
             //2.將新撈資料放進temp table(暫存到資料庫，讓比對choosed_code運算在SQL主機上)
-            var sql_2 = "INSERT course_new_temp (系所名稱, 系號, 選課序號, 課程碼, 分班碼, 班別, 年級, 類別, 英語授課, 課程名稱, 選必修, 學分, 老師, 已選課人數, 餘額, 時間, 教室, 備註, 限選條件, 業界參與, 屬性碼, 跨領域學分學程, Moocs) VALUES ?";
+            var sql_2 = "INSERT course_new_temp (系所名稱, 系號, 選課序號, 課程碼, 分班碼, 班別, 年級, 類別, 英語授課, 課程名稱, 選必修, 學分, 老師, 已選課人數, 餘額, 時間, 教室, 備註, 限選條件, 業界參與, 屬性碼, 跨領域學分學程, Moocs) VALUES ? ";
             conn.query(sql_2, [value], function (err, result) {
                 if (err) throw err;
                 console.log("2.將新撈資料放進temp table，資料行數: " + result.affectedRows);
@@ -204,7 +228,7 @@ function craw_extra_amout_amount() {
                 console.log("1.Truncate清空temp table，資料行數: " + result.affectedRows);
             });
             //1.將新撈餘額INSERT INTO temp
-            var sql_2 = "INSERT INTO course_new_choosedamount (選課序號, 已選課人數, 餘額) VALUES ?";
+            var sql_2 = "INSERT course_new_choosedamount (`選課序號`, `已選課人數`, `餘額`) VALUES ? ";
             conn.query(sql_2, [value], function (err, result) {
                 if (err) throw err;
                 console.log("2.將新撈餘額INSERT INTO temp，資料行數: " + result.affectedRows);
