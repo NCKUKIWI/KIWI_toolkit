@@ -10,7 +10,7 @@
   * lastSemeterId: `course_all` 的最後一個 `id` ( 上學期最後一個課程的 `id` )
 * `refresh_all.py` - 更新全部課程之餘額，確定有無加開、停開課程
 * `update_amount.py` - 更新被追蹤之課程的餘額
-* `gsheetCrawler.json` - 爬取選課心得 google sheet 上面的心得
+* `gsheetCrawler.js` - 爬取選課心得 google sheet 上面的心得
   * START_ROW: 希望從 google sheet 上面的哪個 row 開始爬
 * `refreshUserVIP.js` - 刪除前學期messenger_code中未開通小幫手服務的user，並初始化新學期的user_code資料
   * currentSemester:新學期
