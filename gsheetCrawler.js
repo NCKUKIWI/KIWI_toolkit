@@ -7,13 +7,14 @@
  * 
  * [1] Get the access token:
  *     https://developers.google.com/oauthplayground/
+ *     Fill the access and refresh token in config.crawler.json ["credential"]
  * [2] Post google sheet:
  *     https://docs.google.com/spreadsheets/d/1QJvhTWVKJlqvuBHcxNVjyCUfoFMn4ll91bOB4H3gjNc/edit#gid=1992180234
  */
 
 // ******* Modify here ********
-// LastRow=709          Update at 2020.03.30
-var START_ROW = 710; // The row in google sheet where you want to start crawling. 
+// LastRow=746          Update at 2021.07.23
+var START_ROW = 747; // The row in google sheet where you want to start crawling. 
 // ****************************
 
 
@@ -39,11 +40,14 @@ const GSHEET = {
     "gain": 22
 }
 var connection = mysql.createConnection({
-    host: client.DB.host,
-    user: client.DB.user,
-    password: client.DB.password,
-    database: client.DB.db
+    host: client.db.host,
+    user: client.db.user,
+    password: client.db.pw,
+    database: client.db.database,
+    port: client.db.port,
+    charset : 'utf8mb4', // for saving emoticon to database
 });
+
 connection.connect();
 
 function authorize(callback) {
